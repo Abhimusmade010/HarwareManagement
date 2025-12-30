@@ -1,0 +1,30 @@
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
+
+import connectDB from "./config/db.js";
+connectDB();
+
+import routes from "./routes/index.js";
+
+const app = express();
+
+// Middlewares
+app.use(cors());
+app.use(express.json());
+
+
+app.use(cors({ origin: 'http://localhost:5173' })); 
+
+app.use(express.urlencoded({ extended: true }))
+
+app.use("/api", routes);
+
+// app.use("/api/admin", routes);
+
+app.get("/", (req, res) => {
+  res.send("Server is running...");
+});
+
+export default app;
