@@ -3,6 +3,10 @@ import jwt from "jsonwebtoken";
 
 const authMiddleware = (req, res, next) => {
   try {
+    // console.log("authMiddleware is this!!");
+    console.log("🔥 AUTH MIDDLEWARE HIT:", req.originalUrl);
+
+
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       return res.status(401).json({
@@ -22,7 +26,7 @@ const authMiddleware = (req, res, next) => {
       userId: decoded.userId,
       role: decoded.role,
     };
-
+    console.log("inside authMiddleware:",req.user);
 
     next();
   } catch (error) {

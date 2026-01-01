@@ -1,4 +1,5 @@
 import { registerUser,logUser ,getProfile } from "../services/authService.js";
+import { submitComplaints } from "../services/userService.js";
 
 const signUpUser= async (req,res)=>{
     
@@ -38,5 +39,25 @@ const getMe=async (req,res)=>{
     }
 };
 
+const submitForm=async (req,res)=>{
+    try{
+        // console.log(req.user);
+        const data=req.body;
+        const userId=req.user.userId;   // because my backend send this id not client this is must be kept seperate
 
-export {signUpUser,loginUser,getMe};
+        const result =await submitComplaints(data,userId);
+        console.log("submitform controler try block")
+        res.status(201).json({
+            result
+        });
+    }
+    
+    catch(error){
+        console.log("catch block of submit form")
+        return res.status(400).json({error:error.message});
+    }
+
+} 
+
+
+export {signUpUser,loginUser,getMe,submitForm};
