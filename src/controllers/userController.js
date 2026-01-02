@@ -1,5 +1,8 @@
 import { registerUser,logUser ,getProfile } from "../services/authService.js";
 import { submitComplaints } from "../services/userService.js";
+import { fetchAllComplaints } from "../services/userService.js";
+
+
 
 const signUpUser= async (req,res)=>{
     
@@ -43,7 +46,8 @@ const submitForm=async (req,res)=>{
     try{
         // console.log(req.user);
         const data=req.body;
-        const userId=req.user.userId;   // because my backend send this id not client this is must be kept seperate
+        const userId=req.user.userId;   //because my backend send this id not client this is must be kept seperate
+
 
         const result =await submitComplaints(data,userId);
         console.log("submitform controler try block")
@@ -60,4 +64,19 @@ const submitForm=async (req,res)=>{
 } 
 
 
-export {signUpUser,loginUser,getMe,submitForm};
+const fetchallcomplaints=async (req,res)=>{
+    try{
+        const userId =req.user.userId;
+        const result= await fetchAllComplaints(userId);
+        res.status(200).json({                                      //200 because successfully fetch 201 for successfully creation 
+            result  
+        });
+    }
+    catch(error){
+        return res.status(400).json({error:error.message});
+
+    }
+}
+
+
+export {signUpUser,loginUser,getMe,submitForm,fetchallcomplaints};

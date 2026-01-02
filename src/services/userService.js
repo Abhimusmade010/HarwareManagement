@@ -31,4 +31,18 @@ const submitComplaints=async (data,userId)=>{
 
 }
 
-export  {submitComplaints};
+
+const fetchAllComplaints=async (userId)=>{
+    
+    if(!userId){
+        throw new Error("User Is is required!");
+    }
+    const comaplaints=await Complaint.find({userId}).populate("userId", "name department cabinNo email");
+    if(!comaplaints){
+        throw new Error("comaplaints not found!!")
+    }
+    console.log(comaplaints);
+    return comaplaints;
+    
+}
+export  {submitComplaints,fetchAllComplaints};

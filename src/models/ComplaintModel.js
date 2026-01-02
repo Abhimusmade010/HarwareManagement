@@ -1,5 +1,5 @@
 import mongoose, { mongo } from 'mongoose';
-import validator from 'validator'
+// import validator from 'validator'
 
 
 const complaintSchema = new mongoose.Schema({

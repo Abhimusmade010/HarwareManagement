@@ -81,6 +81,8 @@ const logUser=async (data)=>{
     process.env.JWT_SECRET_KEY,
     {expiresIn:"1d"}
     );
+
+
     return {
         message:"Login successfull",
         token,
@@ -95,7 +97,7 @@ const logUser=async (data)=>{
 };
 
 
-const getProfile=async(userId)=>{
+const getProfile=async (userId)=>{
     if(!userId){
         throw new Error("User Id is required");
     }
@@ -103,7 +105,7 @@ const getProfile=async(userId)=>{
     if(!user){
         throw new Error("User not found");
     }
-    console.log(user)
+    // console.log(user)
     return user;
 };
 
