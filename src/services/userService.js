@@ -1,3 +1,4 @@
+// import { id } from "zod/v4/locales";
 import Complaint from "../models/ComplaintModel.js"
 
    
@@ -35,9 +36,9 @@ const submitComplaints=async (data,userId)=>{
 const fetchAllComplaints=async (userId)=>{
     
     if(!userId){
-        throw new Error("User Is is required!");
+        throw new Error("User is required!");
     }
-    const comaplaints=await Complaint.find({userId}).populate("userId", "name department cabinNo email");
+    const comaplaints=await Complaint.find({userId}).populate("userId");
     if(!comaplaints){
         throw new Error("comaplaints not found!!")
     }
@@ -45,4 +46,16 @@ const fetchAllComplaints=async (userId)=>{
     return comaplaints;
     
 }
-export  {submitComplaints,fetchAllComplaints};
+
+const fetchone=async (complaintId)=>{
+    
+    //if(!user){
+    // }
+    const complaint=await Complaint.findOne({_id:complaintId});
+    if(!complaint){
+        throw new Error("Complaint not found or unauthorized access");
+    }
+    console.log(complaint);
+    return complaint;
+}
+export  {submitComplaints,fetchAllComplaints,fetchone};

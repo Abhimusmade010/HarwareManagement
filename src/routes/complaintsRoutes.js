@@ -1,16 +1,14 @@
-import  express from "express";
+// import  express from "express";
 
-import authMiddleware  from "../middleware/protected.js";
+// import authMiddleware  from "../middleware/protected.js";
 
 
-import { submitForm } from "../controllers/complaintscontroller.js";
+// import { submitForm } from "../controllers/complaintscontroller.js";
 
-import validate from "../middleware/validations.js";
-import { fetchallcomplaints } from "../controllers/complaintscontroller.js";
-import { comSchema } from "../validations/complaintvalidatons.js";
-const router=express.Router();
+// import validate from "../middleware/validations.js";
 
-router.post("/raisedComplaint",authMiddleware,validate(comSchema),submitForm);
+// import { fetchallcomplaints } from "../controllers/complaintscontroller.js";
 
-//get all complaint
-router.get("/fetchallcomplaints",authMiddleware,fetchallcomplaints)
+// import { comSchema } from "../validations/complaintvalidatons.js";
+// const router=express.Router();
+

@@ -2,7 +2,7 @@ import { registerUser,logUser ,getProfile } from "../services/authService.js";
 import { submitComplaints } from "../services/userService.js";
 import { fetchAllComplaints } from "../services/userService.js";
 
-
+import { fetchone } from "../services/userService.js";
 
 const signUpUser= async (req,res)=>{
     
@@ -64,7 +64,7 @@ const submitForm=async (req,res)=>{
 } 
 
 
-const fetchallcomplaints=async (req,res)=>{
+const fetchAllComplaint=async (req,res)=>{
     try{
         const userId =req.user.userId;
         const result= await fetchAllComplaints(userId);
@@ -78,5 +78,19 @@ const fetchallcomplaints=async (req,res)=>{
     }
 }
 
+const fetchoneComplaint=async(req,res)=>{
+    try {
+        console.log("inside controller of one compplaint:");
+        const complaintId=req.params.id;
+        const userId=req.user.userId;
+        const result=await fetchone(complaintId,userId);
+        res.status(200).json({
+            result
+        });
+        
+    } catch (error) {
+        return res.status(400).json({error:error.message});
+    }
+}
 
-export {signUpUser,loginUser,getMe,submitForm,fetchallcomplaints};
+export {signUpUser,loginUser,getMe,submitForm,fetchoneComplaint,fetchAllComplaint};
