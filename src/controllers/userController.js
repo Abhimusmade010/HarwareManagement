@@ -1,7 +1,7 @@
 import { registerUser,logUser ,getProfile } from "../services/authService.js";
 import { submitComplaints } from "../services/userService.js";
 import { fetchAllComplaints } from "../services/userService.js";
-
+import { complaintdelete } from "../services/userService.js";
 import { fetchone } from "../services/userService.js";
 
 const signUpUser= async (req,res)=>{
@@ -93,4 +93,24 @@ const fetchoneComplaint=async(req,res)=>{
     }
 }
 
-export {signUpUser,loginUser,getMe,submitForm,fetchoneComplaint,fetchAllComplaint};
+
+//delete controlller ,user wants to delete the complaint ->
+const deleteComplaint=async(req,res)=>{
+    try{
+        const userId =req.user.userId;
+        const complaintId=req.params.id;
+        const result=await complaintdelete(userId,complaintId);
+        res.status(200).json({
+            result,
+            success: true,
+            message: "Complaint deleted successfully",
+        });
+    }
+    catch(error){
+        res.status(500).json({ error: error.message });
+    }
+    
+};
+
+
+export {signUpUser,loginUser,getMe,submitForm,fetchoneComplaint,fetchAllComplaint,deleteComplaint};

@@ -47,15 +47,35 @@ const fetchAllComplaints=async (userId)=>{
     
 }
 
-const fetchone=async (complaintId)=>{
+const fetchone=async (complaintId,userId)=>{
     
     //if(!user){
     // }
-    const complaint=await Complaint.findOne({_id:complaintId});
+    const complaint=await Complaint.findOne({_id:complaintId,userId:userId});
     if(!complaint){
         throw new Error("Complaint not found or unauthorized access");
     }
     console.log(complaint);
     return complaint;
 }
-export  {submitComplaints,fetchAllComplaints,fetchone};
+
+const complaintdelete=async(userId,complaintId)=>{
+
+    if(!userId){
+        throw new Error("User is required!!")
+    }
+
+    const deletedComplaint = await Complaint.findOneAndDelete({
+      _id: complaintId,
+      userId: userId, // 🔐 ownership check
+    });
+    const allcomplaints=await Complaint.find({userId}).populate("userId");
+
+    if (!deletedComplaint) {
+      throw new Error("Complaint not deleted");
+    }
+    return allcomplaints;
+
+    
+}
+export  {submitComplaints,fetchAllComplaints,fetchone,complaintdelete};
