@@ -1,9 +1,9 @@
 import { registerUser,logUser ,getProfile } from "../services/authService.js";
 import { submitComplaints } from "../services/userService.js";
 import { fetchAllComplaints } from "../services/userService.js";
-import { complaintdelete } from "../services/userService.js";
+// import { complaintdelete } from "../services/userService.js";
 import { fetchone } from "../services/userService.js";
-
+import {addNoteToComplaint} from "../services/userService.js"
 const signUpUser= async (req,res)=>{
     
     try{
@@ -95,22 +95,56 @@ const fetchoneComplaint=async(req,res)=>{
 
 
 //delete controlller ,user wants to delete the complaint ->
-const deleteComplaint=async(req,res)=>{
-    try{
-        const userId =req.user.userId;
+// const deleteComplaint=async(req,res)=>{
+//     try{
+//         const userId =req.user.userId;
+//         const complaintId=req.params.id;
+//         const result=await complaintdelete(userId,complaintId);
+//         res.status(200).json({
+//             result,
+//             success: true,
+//             message: "Complaint deleted successfully",
+//         });
+//     }
+//     catch(error){
+//         res.status(500).json({ error: error.message });
+//     }
+    
+// };
+
+const NoteToComplaint=async(req,res)=>{
+    try{ 
+        console.log("Entered the try block of note to complaint")
+        const userId=req.user.userId;
         const complaintId=req.params.id;
-        const result=await complaintdelete(userId,complaintId);
+        const {message}=req.body;
+        const role=req.user.role;
+        console.log("data recvived",userId);
+        console.log("data recvived",complaintId);
+        console.log("data recvived",message);
+        console.log("data recvived",role);
+
+
+        const result=await addNoteToComplaint(userId,complaintId,role,message);
+        console.log("Came from service layer ")
         res.status(200).json({
             result,
-            success: true,
-            message: "Complaint deleted successfully",
-        });
+            success:true,
+            message:"Complaint Note added successfully!"
+        })
+        console.log("Leavring the try blovk in note to complaint conmtroller")
+
     }
     catch(error){
+        console.log("Enterred in ctch block of note to complaint!")
         res.status(500).json({ error: error.message });
     }
-    
-};
+}
+
+// const addNote=async(req,res)=>{
+//     const userId=req.user.userId;
+//     const complaintId=req.params.id;
 
 
-export {signUpUser,loginUser,getMe,submitForm,fetchoneComplaint,fetchAllComplaint,deleteComplaint};
+// }
+export {signUpUser,loginUser,getMe,submitForm,fetchoneComplaint,fetchAllComplaint,NoteToComplaint};

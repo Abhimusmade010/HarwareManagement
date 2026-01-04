@@ -12,8 +12,8 @@ import { fetchAllComplaint,fetchoneComplaint } from "../controllers/userControll
 //valition function using zod schemas
 import validate from "../middleware/validations.js";
 // import { fetchoneComplaint } from "../controllers/userController.js";
-
-import { deleteComplaint } from "../controllers/userController.js";
+import { NoteToComplaint } from "../controllers/userController.js";
+// import { deleteComplaint } from "../controllers/userController.js";
 //zod schmemas 
 import { signUpSchema,loginSchema } from "../validations/uservalidations.js";
 import { comSchema } from "../validations/complaintvalidatons.js";
@@ -39,10 +39,12 @@ console.log("before route of one complaint");
 router.get("/complaint/:id",authMiddleware,fetchoneComplaint);
 
 
+
+router.post("/addNote/:id",authMiddleware,NoteToComplaint);
 //get comaplaints using filters
 //by pending,by resolved,etc
 
-router.delete("/complaint/:id",authMiddleware,deleteComplaint);
+// router.delete("/complaint/:id",authMiddleware,deleteComplaint);
 
 // router.get("/complaint/?s",authMiddleware,fetchPending);
 

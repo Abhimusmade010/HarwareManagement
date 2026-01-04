@@ -1,5 +1,30 @@
 import mongoose, { mongo } from 'mongoose';
+import { stringFormat } from 'zod';
 // import validator from 'validator'
+
+const noteSchema = new mongoose.Schema({
+    message: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    addedBy: {
+      type: String,
+      enum: ["user", "admin"],
+      required: true,
+    },
+    addedById: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",                                      // optional but powerful
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }            
+);
+
 
 
 const complaintSchema = new mongoose.Schema({
@@ -28,6 +53,7 @@ const complaintSchema = new mongoose.Schema({
     default: "Medium"
   },
 
+  
   status: {
     type: String,
     enum: ["Pending", "In Progress", "Resolved"],
@@ -44,7 +70,8 @@ const complaintSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  notes:[noteSchema],
 
 });
 

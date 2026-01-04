@@ -59,23 +59,49 @@ const fetchone=async (complaintId,userId)=>{
     return complaint;
 }
 
-const complaintdelete=async(userId,complaintId)=>{
+// const complaintdelete=async(userId,complaintId)=>{
 
-    if(!userId){
-        throw new Error("User is required!!")
-    }
+//     if(!userId){
+//         throw new Error("User is required!!")
+//     }
 
-    const deletedComplaint = await Complaint.findOneAndDelete({
-      _id: complaintId,
-      userId: userId, // 🔐 ownership check
-    });
-    const allcomplaints=await Complaint.find({userId}).populate("userId");
+//     const deletedComplaint = await Complaint.findOneAndDelete({
+//       _id: complaintId,
+//       userId: userId, // 🔐 ownership check
+//     });
+//     const allcomplaints=await Complaint.find({userId}).populate("userId");
 
-    if (!deletedComplaint) {
-      throw new Error("Complaint not deleted");
-    }
-    return allcomplaints;
+//     if (!deletedComplaint) {
+//       throw new Error("Complaint not deleted");
+//     }
+//     return allcomplaints;
 
     
+// }
+
+const addNoteToComplaint=async(userId,complaintId,role,message)=>{
+    console.log("Entreed in the service of add note")
+    const complaint = await Complaint.findOne({
+        _id: complaintId,
+        userId: userId, // ownership check for users
+    });
+    console.log("complaint in the service of addnote",complaint)
+    if (!complaint) {
+        throw new Error("Complaint not found or unauthorized");
+    }
+
+    complaint.notes.push({
+        message:message,
+        addedBy: role,
+        addedById: userId,
+    });
+    console.log("leaveing the add note service layer")
+    await complaint.save();
+    return complaint;
+    
 }
-export  {submitComplaints,fetchAllComplaints,fetchone,complaintdelete};
+
+
+
+//prevent delete after comaplaint is resolved because it will be required for admin data ,resolved complaints must not be deleted from db
+export  {submitComplaints,fetchAllComplaints,fetchone,addNoteToComplaint};
