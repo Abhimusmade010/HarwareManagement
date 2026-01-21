@@ -12,13 +12,16 @@ const signUpSchema = z.object({
     .email("Invalid email format")
     .endsWith("@pict.edu", "Only pict.edu emails are allowed"),
 
+  Password: z
+    .string()
+    .min(6, "Password must be at least 6 characters"),
+  
   CabinNo: z
     .string()
     .min(1, "Cabin number is required"),
+  
+  Department:z.string().min(1,"Department name is required!")
 
-  Password: z
-    .string()
-    .min(6, "Password must be at least 6 characters")
 });
 
 

@@ -38,9 +38,10 @@ console.log("before route of one complaint");
 
 router.get("/complaint/:id",authMiddleware,fetchoneComplaint);
 
-
-
 router.post("/addNote/:id",authMiddleware,NoteToComplaint);
+
+router.put
+
 //get comaplaints using filters
 //by pending,by resolved,etc
 

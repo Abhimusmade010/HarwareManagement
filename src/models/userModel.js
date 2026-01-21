@@ -27,16 +27,21 @@ const userSchema = new mongoose.Schema({
             }
         ]
     },
-    CabinNo: {
-        type: String,
-        required: [true,'CabinNo is required'],
-        trim: true
-    },
     Password: {
         type: String,
         required: [true,'password is required'], 
         minlength: 6,
         // select:false    // this wont sent the password to the user unless  specifically ask 
+    },
+    CabinNo: {
+        type: String,
+        required: [true,'CabinNo is required'],
+        trim: true
+    },
+    Department:{
+        type: String,
+        required: [true,'CabinNo is required'],
+        trim: true
     },
     Role: {
         type: String,

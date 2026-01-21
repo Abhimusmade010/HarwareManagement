@@ -9,27 +9,8 @@ import bcrypt from "bcryptjs";
 // import jwt from "jsonwebtoken";
 
 const registerUser= async (data)=>{
-    // const {Name,Email,CabinNo,Password}=data;
-    // const existingUser= await User.findOne({Email});
-    // if(existingUser){
-    //     throw new Error("User already exists");
-    // }
-    // const hashedPassword= await bcrypt.hash(Password,10);
-    // const newUser= new User({
-    //     Name:Name,
-    //     Email:Email,
-    //     CabinNo:CabinNo,
-    //     Password:hashedPassword,
-    //     Role:"user"
-    // });
-    // await newUser.save();
-    // return {
-    //     message:"User registered successfully",
-    //     userId:newUser._id
 
-    // };
-
-    const {Name,Email,CabinNo,Password}=data;
+    const {Name,Email,Password,CabinNo,Department}=data;
 
     const existingUser=await User.findOne({Email});
 
@@ -40,8 +21,9 @@ const registerUser= async (data)=>{
     const newUser=new User({
         Name:Name,
         Email:Email,
-        CabinNo:CabinNo,
         Password:hashPassword,
+        CabinNo:CabinNo,
+        Department:Department,
         Role:"user"
     })
     await newUser.save();
@@ -51,6 +33,7 @@ const registerUser= async (data)=>{
         Name:newUser.Name,
         Email:newUser.Email,
         CabinNo:newUser.CabinNo,
+        Department:newUser.Department
     };
 }
 

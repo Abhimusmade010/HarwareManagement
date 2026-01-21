@@ -1,5 +1,5 @@
 import mongoose, { mongo } from 'mongoose';
-import { stringFormat } from 'zod';
+import { number, stringFormat } from 'zod';
 // import validator from 'validator'
 
 const noteSchema = new mongoose.Schema({
@@ -26,16 +26,16 @@ const noteSchema = new mongoose.Schema({
 );
 
 
-
 const complaintSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true
   },
-  title: {
-    type: String,
-    required: true
+  assetId: {
+  type: Number,
+  required: true,
+  index: true      // this is useful to avoid the asset_complaint
   },
   description: {
     type: String,
@@ -53,7 +53,6 @@ const complaintSchema = new mongoose.Schema({
     default: "Medium"
   },
 
-  
   status: {
     type: String,
     enum: ["Pending", "In Progress", "Resolved"],
@@ -65,8 +64,8 @@ const complaintSchema = new mongoose.Schema({
       type: String // file URL or path
     }
   ],
-
   
+
   createdAt: {
     type: Date,
     default: Date.now

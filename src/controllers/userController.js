@@ -4,12 +4,17 @@ import { fetchAllComplaints } from "../services/userService.js";
 // import { complaintdelete } from "../services/userService.js";
 import { fetchone } from "../services/userService.js";
 import {addNoteToComplaint} from "../services/userService.js"
+
+
 const signUpUser= async (req,res)=>{
     
     try{
         const data=req.body;
         const result =await registerUser(data);
-        res.status(201).json({message:"User created successfully"});
+        res.status(201).json({
+            result,
+            message:"User created successfully"
+        });
     }catch(error){
         res.status(400).json({error:error.message});
 

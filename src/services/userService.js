@@ -1,22 +1,29 @@
 // import { id } from "zod/v4/locales";
 import Complaint from "../models/ComplaintModel.js"
 
-   
 const submitComplaints=async (data,userId)=>{
-
     if(!userId){
         throw new Error("User Is is required!");
     }
 
-    const {title,description,category,priority}=data; 
+    const {assetId,description,category,priority}=data; 
+    console.log("USer is inside submit form is:",userId);
     
+    //handle same assetID case if assetID is samw dont take this as new complaint direct the user to the same assitID existing complaint to add the new complaint to it
     
+    // const ispresentAssetID=Complaint.find({assetId});
+    // if(ispresentAssetID){
+        // direct to the same assetID complaint to add the new compalint to the same complaint
+
+    // }
     const newComplaint=new Complaint({
+        assetId:Number(assetId),
         userId:userId,
-        title:title,
+        // title:title,
         description:description,
         category:category,
         priority:priority || "Medium",
+
     })
 
     await newComplaint.save();
@@ -24,17 +31,16 @@ const submitComplaints=async (data,userId)=>{
     return{
         id:newComplaint._id,
         userId:newComplaint.userId,
-        title:newComplaint.title,
+        assetId:newComplaint.assetId,
+        // title:newComplaint.title,
         description:newComplaint.description,
         category:newComplaint.category,
         priority:newComplaint.priority
     }
-
 }
 
 
-const fetchAllComplaints=async (userId)=>{
-    
+const fetchAllComplaints=async (userId)=>{  
     if(!userId){
         throw new Error("User is required!");
     }
@@ -44,7 +50,6 @@ const fetchAllComplaints=async (userId)=>{
     }
     console.log(comaplaints);
     return comaplaints;
-    
 }
 
 const fetchone=async (complaintId,userId)=>{
