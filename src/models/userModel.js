@@ -16,16 +16,6 @@ const userSchema = new mongoose.Schema({
         unique: true,
         trim: true,
         lowercase: true,
-        validate:[
-            {
-                validator: (v) => validator.isEmail(v),
-                message: 'Please provide a valid email'
-            },
-            {
-                validator: (v) => v.endsWith('@pict.edu'),
-                message: 'Only @pict.edu emails are allowed'
-            }
-        ]
     },
     Password: {
         type: String,

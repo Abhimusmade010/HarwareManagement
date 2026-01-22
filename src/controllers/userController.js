@@ -5,7 +5,7 @@ import { fetchAllComplaints } from "../services/userService.js";
 import { fetchone } from "../services/userService.js";
 import {addNoteToComplaint} from "../services/userService.js"
 
-
+import {complaintData} from "../services/userService.js"
 const signUpUser= async (req,res)=>{
     
     try{
@@ -98,6 +98,21 @@ const fetchoneComplaint=async(req,res)=>{
     }
 }
 
+const complaintStats=async(req,res)=>{
+    try{
+        console.log("Hie abhisheks i am i compaintstats controller")
+        const userId=req.user.userId;
+        const result=await complaintData(userId);
+        console.log("INnside stat controller before res.status")
+        res.status(200).json({
+            result
+        })
+    }
+    catch(error){
+        return res.status(400).json({error:error.message});
+
+    }
+}
 
 //delete controlller ,user wants to delete the complaint ->
 // const deleteComplaint=async(req,res)=>{
@@ -152,4 +167,4 @@ const NoteToComplaint=async(req,res)=>{
 
 
 // }
-export {signUpUser,loginUser,getMe,submitForm,fetchoneComplaint,fetchAllComplaint,NoteToComplaint};
+export {signUpUser,loginUser,getMe,submitForm,fetchoneComplaint,fetchAllComplaint,NoteToComplaint,complaintStats};

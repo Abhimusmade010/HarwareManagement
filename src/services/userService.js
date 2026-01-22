@@ -1,6 +1,6 @@
 // import { id } from "zod/v4/locales";
 import Complaint from "../models/ComplaintModel.js"
-
+import mongoose from "mongoose";
 const submitComplaints=async (data,userId)=>{
     if(!userId){
         throw new Error("User Is is required!");
@@ -107,6 +107,47 @@ const addNoteToComplaint=async(userId,complaintId,role,message)=>{
 }
 
 
+const complaintData=async(userId)=>{
+    if(!userId){
+        throw new Error("User is required!");
+    }
+    console.log("inside stats service")
+    const stats=await Complaint.aggregate([
+        {
+            $match:{userId:new mongoose.Types.ObjectId(userId)}
+        },
+        {
+            $group: {
+                _id: "$status",
+                count: { $sum: 1 }
+            }
+        }
+
+    ]);
+    console.log("stats in object form:",stats)
+
+    //this response we want because aggregate gievs the array of object where we get _id:pending and count:0 but we just want the count 
+    const response={
+        total:0,
+        pending:0,
+        resolved:0,
+        inProgress:0
+    };
+    stats.forEach(item=>{
+        response.total+=item.count;
+        if(item._id === "Pending")response.pending +=item.count;
+        if (item._id === "Resolved") response.resolved += item.count;
+        if (item._id === "In Progress") response.inProgress += item.count;
+
+    })
+    return response;
+
+
+    //fetch  total complaints take variables for this as total,pending,resolved etc
+
+
+}
+
 
 //prevent delete after comaplaint is resolved because it will be required for admin data ,resolved complaints must not be deleted from db
-export  {submitComplaints,fetchAllComplaints,fetchone,addNoteToComplaint};
+export  {submitComplaints,fetchAllComplaints,fetchone,addNoteToComplaint,complaintData};

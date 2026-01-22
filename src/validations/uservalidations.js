@@ -9,8 +9,7 @@ const signUpSchema = z.object({
 
   Email: z
     .string()
-    .email("Invalid email format")
-    .endsWith("@pict.edu", "Only pict.edu emails are allowed"),
+    .email("Invalid email format"),
 
   Password: z
     .string()
