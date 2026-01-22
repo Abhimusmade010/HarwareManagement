@@ -104,9 +104,7 @@ const complaintStats=async(req,res)=>{
         const userId=req.user.userId;
         const result=await complaintData(userId);
         console.log("INnside stat controller before res.status")
-        res.status(200).json({
-            result
-        })
+        res.status(200).json(result)
     }
     catch(error){
         return res.status(400).json({error:error.message});
