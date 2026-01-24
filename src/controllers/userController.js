@@ -159,9 +159,6 @@ const NoteToComplaint=async(req,res)=>{
     }
 }
 
-// const addNote=async(req,res)=>{
-//     const userId=req.user.userId;
-//     const complaintId=req.params.id;
 
 
 // }
