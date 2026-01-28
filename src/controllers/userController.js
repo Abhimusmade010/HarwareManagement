@@ -6,6 +6,7 @@ import { fetchone } from "../services/userService.js";
 import {addNoteToComplaint} from "../services/userService.js"
 
 import {complaintData} from "../services/userService.js"
+
 const signUpUser= async (req,res)=>{
     
     try{
@@ -68,14 +69,13 @@ const submitForm=async (req,res)=>{
 
 } 
 
-
 const fetchAllComplaint=async (req,res)=>{
     try{
         const userId =req.user.userId;
         const result= await fetchAllComplaints(userId);
-        res.status(200).json({                                      //200 because successfully fetch 201 for successfully creation 
+        res.status(200).json(                                      //200 because successfully fetch 201 for successfully creation 
             result  
-        });
+        );
     }
     catch(error){
         return res.status(400).json({error:error.message});
@@ -130,6 +130,7 @@ const complaintStats=async(req,res)=>{
     
 // };
 
+
 const NoteToComplaint=async(req,res)=>{
     try{ 
         console.log("Entered the try block of note to complaint")
@@ -159,7 +160,8 @@ const NoteToComplaint=async(req,res)=>{
     }
 }
 
-
-
-// }
 export {signUpUser,loginUser,getMe,submitForm,fetchoneComplaint,fetchAllComplaint,NoteToComplaint,complaintStats};
+
+
+
+
