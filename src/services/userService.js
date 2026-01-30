@@ -1,6 +1,7 @@
 // import { id } from "zod/v4/locales";
 import Complaint from "../models/ComplaintModel.js"
 import mongoose from "mongoose";
+
 const submitComplaints=async (data,userId)=>{
     if(!userId){
         throw new Error("User Is is required!");
@@ -44,7 +45,10 @@ const fetchAllComplaints=async (userId)=>{
     if(!userId){
         throw new Error("User is required!");
     }
-    const comaplaints=await Complaint.find({userId}).select("status category priority assetId description").sort({createdAt:-1});
+    
+        const comaplaints=await Complaint.find({userId}).select("status category priority assetId description").sort({createdAt:-1});
+    
+    
     // only select those we want to show in the dashboard
 
     if(!comaplaints){
@@ -150,5 +154,10 @@ const complaintData=async(userId)=>{
 }
 
 
+//for maintaince engineer
+const getAllComplaints=async()=>{
+    return await Complaint.find().sort({ createdAt: -1 });
+}
+
 //prevent delete after comaplaint is resolved because it will be required for admin data ,resolved complaints must not be deleted from db
-export  {submitComplaints,fetchAllComplaints,fetchone,addNoteToComplaint,complaintData};
+export  {submitComplaints,fetchAllComplaints,fetchone,addNoteToComplaint,complaintData,getAllComplaints};

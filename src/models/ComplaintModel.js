@@ -32,7 +32,7 @@ const complaintSchema = new mongoose.Schema({
     ref: "User",
     required: true
   },
-  assetId: {
+  assetId: {  
   type: Number,
   required: true,
   index: true      // this is useful to avoid the asset_complaint
@@ -55,8 +55,8 @@ const complaintSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["Pending", "In Progress", "Resolved"],
-    default: "Pending"
+    enum: ["pending", "in-progress", "resolved"],
+    default: "pending"
   },
   
   attachments:[

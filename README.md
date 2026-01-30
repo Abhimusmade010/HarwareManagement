@@ -189,3 +189,105 @@ The final API response is optimized, structured, and ready for dashboard usage.
   "resolved": 5,
   "inProgress": 2
 }
+
+
+
+
+
+
+
+
+
+
+
+
+ADMIN:-
+🔐 Maintenance Dashboard Access (System-Level Authentication)
+
+The maintenance dashboard is protected using system-level authentication instead of user-based login.
+This is intentional, as the system is managed by a single maintenance engineer handling IT-related complaints.
+
+Key Characteristics
+
+No maintenance user registration
+
+No maintenance database schema
+
+Access controlled using a fixed system password
+
+JWT-based protection for maintenance routes
+
+🔑 Maintenance Login
+
+Endpoint
+
+POST /maintenance/login
+
+
+Description
+Authenticates the maintenance engineer using a system password stored in environment variables.
+On success, returns a JWT token required for accessing maintenance routes.
+
+Request Body
+
+{
+  "password": "<MAINTENANCE_PASSWORD>"
+}
+
+
+Success Response (200)
+
+{
+  "success": true,
+  "message": "Maintenance login successful",
+  "token": "<JWT_TOKEN>"
+}
+
+
+Failure Response (401)
+
+{
+  "success": false,
+  "message": "Invalid maintenance password"
+}
+
+🛡️ Maintenance Route Protection
+
+All maintenance routes are protected using a custom JWT middleware.
+
+Required Header
+
+Authorization: Bearer <JWT_TOKEN>
+
+
+Requests without a valid token are rejected.
+
+📋 Maintenance Routes
+Fetch All Complaints
+
+Endpoint
+
+GET /maintenance/complaints
+
+
+Description
+Allows the maintenance engineer to fetch all complaints submitted by users.
+
+Access
+
+Protected (Maintenance JWT required)
+
+Response
+
+{
+  "success": true,
+  "complaints": [ ... ]
+}
+
+🧠 Design Rationale
+
+Since the system handles only IT-related complaints and is managed by a single maintenance engineer, system-level authentication reduces complexity.
+
+This approach avoids unnecessary user roles while still ensuring restricted access.
+
+Business logic is reused through a shared service layer; access control is handled at the controller/middleware level.

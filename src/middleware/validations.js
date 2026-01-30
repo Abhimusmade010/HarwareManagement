@@ -9,6 +9,7 @@ const validate = (schema) => (req, res, next) => {
     const errors = result.error?.issues;
 
     console.log("after resullt got!")
+    
     console.log(errors)
     if (!errors || errors.length === 0) {
       return res.status(400).json({
