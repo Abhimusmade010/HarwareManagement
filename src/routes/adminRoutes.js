@@ -2,8 +2,8 @@
 import  express from "express";
 import {maintenanceLoginController } from "../controllers/maintainanceController.js"
 import { maintenanceAuth } from "../middleware/maintainanceProtected.js";
-import { fetchAllComplaintsForMaintenance } from "../controllers/maintainanceController.js";
-import { updateStatus } from "../controllers/maintainanceController.js";
+import { fetchAllComplaintsForMaintenance } from "../controllers/complaintscontroller.js";
+import { updateStatus } from "../controllers/complaintscontroller.js";
 const router=express.Router();
 
 

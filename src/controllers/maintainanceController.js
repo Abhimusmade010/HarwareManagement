@@ -1,7 +1,7 @@
 import { maintenanceLogin } from "../services/maintainanceService.js";
-import { getAllComplaints } from "../services/userService.js";
+// import { getAllComplaints } from "../services/userService.js";
 
-import { updateComplaintStatus } from "../services/maintainanceService.js";
+// import { updateComplaintStatus } from "../services/maintainanceService.js";
 const maintenanceLoginController =async (req,res)=>{
     try{
         console.log("INSDIE TRY block OD TRY IN maintenanceLoginController ")
@@ -20,43 +20,44 @@ const maintenanceLoginController =async (req,res)=>{
 
 
 
-const fetchAllComplaintsForMaintenance = async (req, res) => {
-  try {
-    const complaints = await getAllComplaints();
+// const fetchAllComplaintsForMaintenance = async (req, res) => {
+//   try {
+//     const complaints = await getAllComplaints();
 
-    res.status(200).json({
-      success: true,
-      complaints,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch complaints",
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       complaints,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch complaints",
+//     });
+//   }
+// };
 
-const updateStatus=async(req,res)=>{
+
+// const updateStatus=async(req,res)=>{
     
-    try{
-        const  {complaintId} =req.params;
-        const {status}=req.body;
+//     try{
+//         const  {complaintId} =req.params;
+//         const {status}=req.body;
 
-        const result=await updateComplaintStatus(complaintId,status);
-        console.log("inside updatestauts controller ",result)
-        res.status(200).json({
-            success: true,
-            result
-        });
+//         const result=await updateComplaintStatus(complaintId,status);
+//         console.log("inside updatestauts controller ",result)
+//         res.status(200).json({
+//             success: true,
+//             result
+//         });
         
 
-    }catch(error){
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch complaints",
-            });
-    }
-}
+//     }catch(error){
+//         res.status(500).json({
+//             success: false,
+//             message: "Failed to fetch complaints",
+//             });
+//     }
+// }
 
-export {maintenanceLoginController,fetchAllComplaintsForMaintenance,updateStatus};
+export {maintenanceLoginController};
 
