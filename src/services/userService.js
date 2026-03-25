@@ -159,5 +159,25 @@ const getAllComplaints=async()=>{
     return await Complaint.find().sort({ createdAt: -1 });
 }
 
-//prevent delete after comaplaint is resolved because it will be required for admin data ,resolved complaints must not be deleted from db
-export  {submitComplaints,fetchAllComplaints,fetchone,addNoteToComplaint,complaintData,getAllComplaints};
+const topCategories = async (userId) => {
+    if (!userId) {
+        throw new Error("User is required!");
+    }
+    const stats = await Complaint.aggregate([
+        { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+        { $group: { _id: "$category", count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+    ]);
+    // Format: [{ _id: "Electrical", count: 5 }, ...]
+    return stats;
+};
+
+export {
+    submitComplaints,
+    fetchAllComplaints,
+    fetchone,
+    addNoteToComplaint,
+    complaintData,
+    getAllComplaints,
+    topCategories // <-- Export the new service
+};

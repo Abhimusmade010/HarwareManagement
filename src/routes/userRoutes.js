@@ -7,6 +7,8 @@ import { signUpUser,loginUser ,getMe} from "../controllers/userController.js";
 //complaint controllers
 import { submitForm } from "../controllers/complaintscontroller.js";
 
+import { topComplaintCategories } from "../controllers/complaintscontroller.js";
+
 import { fetchAllComplaint,fetchoneComplaint } from "../controllers/complaintscontroller.js";
 // import fetchoneComplaint from
 //valition function using zod schemas
@@ -26,6 +28,9 @@ const router=express.Router();
 router.post("/signup",validate(signUpSchema),signUpUser);
 router.post("/login",validate(loginSchema),loginUser)
 
+//top complaint categories route
+router.get("/topcategories",authMiddleware,topComplaintCategories);
+
 //user details route
 router.get("/getprofile",authMiddleware,getMe);   //here add the middleware to check is user is login or not 
 
@@ -33,6 +38,7 @@ router.get("/getprofile",authMiddleware,getMe);   //here add the middleware to c
 router.post("/raisedComplaint",authMiddleware,validate(comSchema),submitForm);
 
 //get all complaint
+
 router.get("/complaints",authMiddleware,fetchAllComplaint);
 
 //get total number of complaints per userId  get compalint stats route only one route for all stats

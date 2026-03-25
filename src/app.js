@@ -17,14 +17,10 @@ app.use(cors({
   credentials: true
 }));
 
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 app.use("/api", routes);
-
-// app.use("/api/admin", routes);
 
 app.get("/", (req, res) => {
   res.send("Server is running...");

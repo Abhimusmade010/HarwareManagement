@@ -1,13 +1,12 @@
-
 import { getAllComplaints } from "../services/userService.js";
 import { updateComplaintStatus } from "../services/maintainanceService.js";
 import { submitComplaints } from "../services/userService.js";
 import { fetchAllComplaints } from "../services/userService.js";
-// import { complaintdelete } from "../services/userService.js";
 import { fetchone } from "../services/userService.js";
 import {addNoteToComplaint} from "../services/userService.js"
-
 import {complaintData} from "../services/userService.js"
+import { topCategories } from "../services/userService.js";
+
 
 const fetchAllComplaintsForMaintenance = async (req, res) => {
   try {
@@ -24,7 +23,6 @@ const fetchAllComplaintsForMaintenance = async (req, res) => {
     });
   }
 };
-
 
 const updateStatus=async(req,res)=>{
     
@@ -47,7 +45,6 @@ const updateStatus=async(req,res)=>{
             });
     }
 }
-
 
 const submitForm=async (req,res)=>{
     try{
@@ -113,6 +110,16 @@ const complaintStats=async(req,res)=>{
     }
 }
 
+const topComplaintCategories = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const result = await topCategories(userId);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+}
+
 //delete controlller ,user wants to delete the complaint ->
 // const deleteComplaint=async(req,res)=>{
 //     try{
@@ -161,5 +168,4 @@ const NoteToComplaint=async(req,res)=>{
     }
 }
 
-
-export {fetchAllComplaintsForMaintenance,updateStatus,submitForm,fetchoneComplaint,fetchAllComplaint,NoteToComplaint,complaintStats};
+export {fetchAllComplaintsForMaintenance,updateStatus,submitForm,fetchoneComplaint,fetchAllComplaint,NoteToComplaint,complaintStats,topComplaintCategories};

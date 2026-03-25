@@ -32,12 +32,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true,'CabinNo is required'],
         trim: true
+    },
+    Role: {
+        type: String,
+        enum: ['maintainance', 'user','admin'],
+        default: 'user' 
     }
-    // Role: {
-    //     type: String,
-    //     enum: ['admin', 'user'],
-    //     default: 'user' 
-    // }
 
 
 },{timestamps:true})
