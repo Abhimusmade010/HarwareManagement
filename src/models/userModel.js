@@ -1,46 +1,56 @@
 import mongoose from 'mongoose';
-import validator from 'validator'
-
-
-
 
 const userSchema = new mongoose.Schema({
     Name: {
         type: String,
-        required:[ true,'Name is required'],
+        required: true,
         trim: true
     },
+
     Email: {
         type: String,
-        required: [true,'Email is required'],
+        required: true,
         unique: true,
-        trim: true,
         lowercase: true,
+        trim: true
     },
+
     Password: {
         type: String,
-        required: [true,'password is required'], 
-        minlength: 6,
-        // select:false    // this wont sent the password to the user unless  specifically ask 
+        required: true,
+        minlength: 6
     },
-    CabinNo: {
-        type: String,
-        required: [true,'CabinNo is required'],
-        trim: true
-    },
-    Department:{
-        type: String,
-        required: [true,'CabinNo is required'],
-        trim: true
-    },
+
     Role: {
         type: String,
-        enum: ['maintainance', 'user','admin'],
-        default: 'user' 
-    }
+        enum: ["user", "maintainance", "admin"],
+        default: "user"
+    },
+
+    profileCompleted: {
+        type: Boolean,
+        default: false
+    },
+
+    mustChangePassword: {
+        type: Boolean,
+        default: false
+    },
 
 
-},{timestamps:true})
+    MobileNo: String,
+
+    // User specific
+    CabinNo: String,
+    Department: String,
+
+    // Maintenance specific
+    Specialization: String,
+
+    // Admin specific
+    Designation: String
+
+}, { timestamps: true });
 
 
 

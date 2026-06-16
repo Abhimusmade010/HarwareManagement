@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-
 const signUpSchema = z.object({
   Name: z
     .string()
@@ -14,17 +13,13 @@ const signUpSchema = z.object({
   Password: z
     .string()
     .min(6, "Password must be at least 6 characters"),
-  
-  CabinNo: z
-    .string()
-    .min(1, "Cabin number is required"),
-  
-  Department:z.string().min(1,"Department name is required!")
 
+  Role: z
+    .enum(["user", "maintainance", "admin"])
+    .optional()
 });
 
-
- const loginSchema = z.object({
+const loginSchema = z.object({
   Email: z
     .string()
     .email("Invalid email format"),
@@ -34,5 +29,34 @@ const signUpSchema = z.object({
     .min(6, "Password must be at least 6 characters")
 });
 
+const createMaintenanceSchema = z.object({
+    Name: z.string().min(3),
+    Email: z.string().email()
+});
 
-export {signUpSchema,loginSchema};
+
+
+const changePasswordSchema = z.object({
+
+    currentPassword: z
+        .string()
+        .min(6),
+
+    newPassword: z
+        .string()
+        .min(6)
+
+});
+
+const profileSchema = z.object({
+    MobileNo: z.string().max(15),
+    CabinNo: z.number().max(10),
+    Department: z.string().max(100),
+    Specialization: z.string().max(100),
+    Designation: z.string().max(100)
+});
+
+
+
+
+export { signUpSchema, loginSchema, createMaintenanceSchema, changePasswordSchema, profileSchema };

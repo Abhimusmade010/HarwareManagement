@@ -1,171 +1,120 @@
-import { getAllComplaints } from "../services/userService.js";
-import { updateComplaintStatus } from "../services/maintainanceService.js";
-import { submitComplaints } from "../services/userService.js";
-import { fetchAllComplaints } from "../services/userService.js";
-import { fetchone } from "../services/userService.js";
-import {addNoteToComplaint} from "../services/userService.js"
-import {complaintData} from "../services/userService.js"
-import { topCategories } from "../services/userService.js";
+import catchAsync from "../utils/catchAsync.js";
+import AppError from "../utils/AppError.js";
+import * as ComplaintService from "../services/userService.js";
+import * as MaintenanceService from "../services/maintainanceService.js";
 
+export const fetchAllComplaintsForMaintenance = catchAsync(async (req, res, next) => {
+  const complaints = await MaintenanceService.getAllComplaints();
 
-const fetchAllComplaintsForMaintenance = async (req, res) => {
-  try {
-    const complaints = await getAllComplaints();
+  res.status(200).json({
+    status: 'success',
+    results: complaints.length,
+    data: { complaints },
+  });
+});
+
+export const updateStatus = catchAsync(async (req, res, next) => {
+  const { complaintId } = req.params;
+  const { status, resolutionDetails } = req.body;
+
+  const complaint = await MaintenanceService.updateComplaintStatus(complaintId, status, resolutionDetails);
+
+  if (!complaint) {
+    return next(new AppError('No complaint found with that ID', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: { complaint },
+  });
+});
+
+export const submitForm = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+  const complaint = await ComplaintService.submitComplaints(req.body, userId);
+
+  res.status(201).json({
+    status: 'success',
+    data: { complaint },
+  });
+});
+
+export const fetchAllComplaint = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+  const complaints = await ComplaintService.fetchAllComplaints(userId);
+
+  res.status(200).json({
+    status: 'success',
+    results: complaints.length,
+    data: { complaints },
+  });
+});
+
+export const fetchoneComplaint = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const userId = req.user._id;
+  const complaint = await ComplaintService.fetchone(id, userId);
+
+  if (!complaint) {
+    return next(new AppError('No complaint found with that ID', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: { complaint },
+  });
+});
+
+export const complaintStats = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+  const stats = await ComplaintService.complaintData(userId);
+
+  res.status(200).json({
+    status: 'success',
+    data: { stats },
+  });
+});
+
+export const topComplaintCategories = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+  const stats = await ComplaintService.topCategories(userId);
+
+  res.status(200).json({
+    status: 'success',
+    data: { stats },
+  });
+});
+
+export const NoteToComplaint = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+  const complaintId = req.params.id;
+  const { message } = req.body;
+  const role = req.user.Role;
+
+  const complaint = await ComplaintService.addNoteToComplaint(userId, complaintId, role, message);
+
+  if (!complaint) {
+    return next(new AppError('No complaint found with that ID', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    message: "Complaint Note added successfully!",
+    data: { complaint }
+  });
+});
+
+export const escalateComplaint = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const complaint = await MaintenanceService.escalateComplaint(id);
+
+    if (!complaint) {
+        return next(new AppError('No complaint found with that ID', 404));
+    }
 
     res.status(200).json({
-      success: true,
-      complaints,
+        status: 'success',
+        message: 'Complaint escalated to senior management',
+        data: { complaint }
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch complaints",
-    });
-  }
-};
-
-const updateStatus=async(req,res)=>{
-    
-    try{
-        const  {complaintId} =req.params;
-        const {status}=req.body;
-
-        const result=await updateComplaintStatus(complaintId,status);
-        console.log("inside updatestauts controller ",result)
-        res.status(200).json({
-            success: true,
-            result
-        });
-        
-
-    }catch(error){
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch complaints",
-            });
-    }
-}
-
-const submitForm=async (req,res)=>{
-    try{
-        // console.log(req.user);
-        const data=req.body;
-        const userId=req.user.userId;   //because my backend send this id not client this is must be kept seperate
-
-
-        const result =await submitComplaints(data,userId);
-        console.log("submitform controler try block")
-        res.status(201).json({
-            result
-        });
-    }
-    
-    catch(error){
-        console.log("catch block of submit form")
-        return res.status(400).json({error:error.message});
-    }
-
-} 
-
-const fetchAllComplaint=async (req,res)=>{
-    try{
-        const userId =req.user.userId;
-        const result =await fetchAllComplaints(userId);
-        res.status(200).json(                                      //200 because successfully fetch 201 for successfully creation 
-            result  
-        );
-    }
-    catch(error){
-        return res.status(400).json({error:error.message});
-
-    }
-}
-
-const fetchoneComplaint=async(req,res)=>{
-    try {
-        console.log("inside controller of one compplaint:");
-        const complaintId=req.params.id;
-        const userId=req.user.userId;
-        const result=await fetchone(complaintId,userId);
-        res.status(200).json({
-            result
-        });
-        
-    } catch (error) {
-        return res.status(400).json({error:error.message});
-    }
-}
-
-const complaintStats=async(req,res)=>{
-    try{
-        console.log("Hie abhisheks i am i compaintstats controller")
-        const userId=req.user.userId;
-        const result=await complaintData(userId);
-        console.log("INnside stat controller before res.status")
-        res.status(200).json(result)
-    }
-    catch(error){
-        return res.status(400).json({error:error.message});
-
-    }
-}
-
-const topComplaintCategories = async (req, res) => {
-    try {
-        const userId = req.user.userId;
-        const result = await topCategories(userId);
-        res.status(200).json(result);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-}
-
-//delete controlller ,user wants to delete the complaint ->
-// const deleteComplaint=async(req,res)=>{
-//     try{
-//         const userId =req.user.userId;
-//         const complaintId=req.params.id;
-//         const result=await complaintdelete(userId,complaintId);
-//         res.status(200).json({
-//             result,
-//             success: true,
-//             message: "Complaint deleted successfully",
-//         });
-//     }
-//     catch(error){
-//         res.status(500).json({ error: error.message });
-//     }
-    
-// };
-
-
-const NoteToComplaint=async(req,res)=>{
-    try{ 
-        console.log("Entered the try block of note to complaint")
-        const userId=req.user.userId;
-        const complaintId=req.params.id;
-        const {message}=req.body;
-        const role=req.user.role;
-        console.log("data recvived",userId);
-        console.log("data recvived",complaintId);
-        console.log("data recvived",message);
-        console.log("data recvived",role);
-
-
-        const result=await addNoteToComplaint(userId,complaintId,role,message);
-        console.log("Came from service layer ")
-        res.status(200).json({
-            result,
-            success:true,
-            message:"Complaint Note added successfully!"
-        })
-        console.log("Leavring the try blovk in note to complaint conmtroller")
-
-    }
-    catch(error){
-        console.log("Enterred in ctch block of note to complaint!")
-        res.status(500).json({ error: error.message });
-    }
-}
-
-export {fetchAllComplaintsForMaintenance,updateStatus,submitForm,fetchoneComplaint,fetchAllComplaint,NoteToComplaint,complaintStats,topComplaintCategories};
+});

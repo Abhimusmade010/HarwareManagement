@@ -49,16 +49,34 @@ const complaintSchema = new mongoose.Schema({
 
   priority: {
     type: String,
-    enum: ["Low", "Medium", "High"],
+    enum: ["Low", "Medium", "High", "Critical"],
     default: "Medium"
   },
 
   status: {
     type: String,
-    enum: ["pending", "in-progress", "resolved"],
+    enum: ["pending", "in-progress", "resolved", "closed", "escalated"],
     default: "pending"
   },
   
+  escalated: {
+    type: Boolean,
+    default: false
+  },
+
+  assignedTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  },
+
+  resolutionDate: {
+    type: Date
+  },
+
+  resolutionDetails: {
+    type: String
+  },
+
   attachments:[
     {
       type: String // file URL or path
@@ -70,8 +88,17 @@ const complaintSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  },
   notes:[noteSchema],
 
+});
+
+complaintSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 const Complaint=mongoose.model('Complaint',complaintSchema);

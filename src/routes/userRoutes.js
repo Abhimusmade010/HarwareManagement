@@ -1,65 +1,30 @@
-import  express from "express";
-
-import authMiddleware  from "../middleware/protected.js";
-//user auth
-import { signUpUser,loginUser ,getMe} from "../controllers/userController.js";
-
-//complaint controllers
-import { submitForm } from "../controllers/complaintscontroller.js";
-
-import { topComplaintCategories } from "../controllers/complaintscontroller.js";
-
-import { fetchAllComplaint,fetchoneComplaint } from "../controllers/complaintscontroller.js";
-// import fetchoneComplaint from
-//valition function using zod schemas
+import express from "express";
+import { signUpUser, loginUser, getMe } from "../controllers/authController.js";
+import { protect } from "../middleware/authMiddleware.js";
 import validate from "../middleware/validations.js";
-// import { fetchoneComplaint } from "../controllers/userController.js";
-import { NoteToComplaint } from "../controllers/complaintscontroller.js";
-// import { deleteComplaint } from "../controllers/userController.js";
-//zod schmemas 
-import { signUpSchema,loginSchema } from "../validations/uservalidations.js";
-import { comSchema } from "../validations/complaintvalidatons.js";
-// import Complaint .from "../models/ComplaintModel.js";
-import { complaintStats } from "../controllers/complaintscontroller.js";
+import { signUpSchema, loginSchema } from "../validations/uservalidations.js";
+import { changePasswordSchema } from "../validations/uservalidations.js";
+import { changePassword } from "../controllers/maintainanceController.js";
 
-const router=express.Router();
+const router = express.Router();
+import sendEmail from "../utils/sendEmail.js";
+import { profileSchema } from "../validations/uservalidations.js";
+import { changeProfile } from "../controllers/authController.js";
 
-//user auth routes
-router.post("/signup",validate(signUpSchema),signUpUser);
-router.post("/login",validate(loginSchema),loginUser)
 
-//top complaint categories route
-router.get("/topcategories",authMiddleware,topComplaintCategories);
 
-//user details route
-router.get("/getprofile",authMiddleware,getMe);   //here add the middleware to check is user is login or not 
 
-//user raising complaint 
-router.post("/raisedComplaint",authMiddleware,validate(comSchema),submitForm);
+router.post("/signup", validate(signUpSchema), signUpUser);
+router.post("/login", validate(loginSchema), loginUser);
+router.use(protect);
 
-//get all complaint
+router.patch("/complete-profile", validate(profileSchema), changeProfile);
 
-router.get("/complaints",authMiddleware,fetchAllComplaint);
+// Profile routes
+router.patch("/change-password",protect,validate(changePasswordSchema),changePassword);
 
-//get total number of complaints per userId  get compalint stats route only one route for all stats
-console.log("hi abhihek i am in userRoutes before stat route")
-router.get("/stats",authMiddleware,complaintStats);
 
-//fetch one complaint details later for tracking and updation
-console.log("before route of one complaint");
+router.get("/me", getMe);
 
-// router.get("/complaint/:id")
-router.get("/complaint/:id",authMiddleware,fetchoneComplaint);
-
-router.post("/addNote/:id",authMiddleware,NoteToComplaint);
-
-// router.put
-
-//get comaplaints using filters
-//by pending,by resolved,etc 
-
-// router.delete("/complaint/:id",authMiddleware,deleteComplaint);
-
-// router.get("/complaint/?s",authMiddleware,fetchPending);
 
 export default router;

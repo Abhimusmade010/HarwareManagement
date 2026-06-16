@@ -1,12 +1,21 @@
 import  express from "express";
-import {maintenanceLoginController } from "../controllers/maintainanceController.js"
 import { maintenanceAuth } from "../middleware/maintainanceProtected.js";
-import { fetchAllComplaintsForMaintenance } from "../controllers/complaintscontroller.js";
-import { updateStatus } from "../controllers/complaintscontroller.js";
+import {updateStatus, fetchAllComplaintsForMaintenance } from "../controllers/complaintscontroller.js";
+import validate from "../middleware/validations.js";
+import { createMaintenanceSchema } from "../validations/uservalidations.js";
+import { createMaintenanceUserController } from "../controllers/adminController.js";
+import { protect, restrictTo } from "../middleware/authMiddleware.js";
 const router=express.Router();
 
 
-router.post("/maintainancelogin",maintenanceLoginController );
+
+// =======make this common to all later on =======
+// router.user(protect).restrictTo("admin")
+
+
+router.post("/create-maintenance",protect,restrictTo("admin"),validate(createMaintenanceSchema),createMaintenanceUserController);
+
+// router.post("/maintainancelogin",maintenanceLoginController );
 //add note to the complaints 
 //change the status
 //marked as seen once the complaint marked user cannot delete or update the complaint

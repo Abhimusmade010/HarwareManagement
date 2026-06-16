@@ -7,23 +7,30 @@ import connectDB from "./config/db.js";
 connectDB();
 
 import routes from "./routes/index.js";
+import AppError from "./utils/AppError.js";
+import errorMiddleware from "./middleware/errorMiddleware.js";
 
 const app = express();
 
 // Middlewares
-
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
   credentials: true
 }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api", routes);
 
-app.get("/", (req, res) => {
-  res.send("Server is running...");
-});
+
+
+
+// Routes
+app.use("/api", routes); // Versioned API
+
+
+
+app.use(errorMiddleware);
 
 export default app;
+
