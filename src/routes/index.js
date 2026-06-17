@@ -3,18 +3,18 @@ import authRoutes from "./userRoutes.js";                       //Renaming for c
 import complaintRoutes from "./complaintRoutes.js";
 import reportRoutes from "./reportRoutes.js";
 import adminRoutes from "./adminRoutes.js";
-
+import dashboardRoutes from "./dashboardRoutes.js";
 const router = express.Router();
 
 
 
 router.use("/auth", authRoutes);
 
-
 router.use("/complaints", complaintRoutes);
 
-
 router.use("/reports", reportRoutes);
+
+router.use("/dashboard", dashboardRoutes);
 
 router.use("/admin", adminRoutes);
 

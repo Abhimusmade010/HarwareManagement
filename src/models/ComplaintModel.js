@@ -10,7 +10,7 @@ const noteSchema = new mongoose.Schema({
     },
     addedBy: {
       type: String,
-      enum: ["user", "admin","maintenance"],
+      enum: ["user","maintainance","admin"],
       required: true,
     },
     addedById: {
@@ -101,5 +101,8 @@ const complaintSchema = new mongoose.Schema(
 //   next();
 // });
 
-const Complaint=mongoose.model('Complaint',complaintSchema);
+const Complaint =
+  mongoose.models.Complaint ||
+  mongoose.model("Complaint", complaintSchema);
+
 export default Complaint;

@@ -66,6 +66,7 @@ export const updateComplaintStatus = async (complaintId,status,resolutionDetails
 
 
 export const escalateComplaint = async (complaintId) => {
+  
     return await Complaint.findByIdAndUpdate(
         complaintId,
         { 
