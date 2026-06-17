@@ -4,7 +4,7 @@ dotenv.config();
 import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { welcomeEmail } from "../utils/emailTemplates/welcomeEmail.js";
+import { welcomeEmail,welcomeMaintenanceEmail } from "../utils/emailTemplates/welcomeEmail.js";
 // Normalize email to lowercase and trim spaces
 const normalizeEmail = (email) => email.trim().toLowerCase();
 
@@ -206,6 +206,8 @@ const completeProfile = async (userId, data) => {
     return user;
 };
 
+
+
 export { registerUser, logUser, getProfile, changePassword, completeProfile };
 
-
+        

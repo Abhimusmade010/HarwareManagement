@@ -14,17 +14,24 @@ import { changeProfile } from "../controllers/authController.js";
 
 
 
+
+
+
+
 router.post("/signup", validate(signUpSchema), signUpUser);
 router.post("/login", validate(loginSchema), loginUser);
+router.get("/me", getMe);
+
+
 router.use(protect);
 
 router.patch("/complete-profile", validate(profileSchema), changeProfile);
-
 // Profile routes
 router.patch("/change-password",protect,validate(changePasswordSchema),changePassword);
 
 
-router.get("/me", getMe);
+
+
 
 
 export default router;

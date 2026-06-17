@@ -6,12 +6,17 @@ import adminRoutes from "./adminRoutes.js";
 
 const router = express.Router();
 
+
+
 router.use("/auth", authRoutes);
+
+
 router.use("/complaints", complaintRoutes);
+
+
 router.use("/reports", reportRoutes);
+
 router.use("/admin", adminRoutes);
-
-
 
 
 export default router;

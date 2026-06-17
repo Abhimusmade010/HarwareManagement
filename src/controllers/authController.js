@@ -1,7 +1,8 @@
 import * as AuthService from "../services/authService.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
-import { completeProfile } from "../services/authService.js";
+import { completeProfile} from "../services/authService.js";
+
 const signUpUser = catchAsync(async (req, res, next) => {
 
     const result = await AuthService.registerUser(req.body);
@@ -46,6 +47,7 @@ const getMe = catchAsync(async (req, res, next) => {
         data: { user },
     });
 });
+
 const changeProfile = catchAsync(async (req, res, next) => {
     const userId = req.user._id;
     const result = await AuthService.completeProfile(userId, req.body);

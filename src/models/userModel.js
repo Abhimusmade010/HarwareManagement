@@ -45,7 +45,16 @@ const userSchema = new mongoose.Schema({
     Department: String,
 
     // Maintenance specific
-    Specialization: String,
+    // Specialization: String,
+
+    // this is only for maintenance users, so we can use enum to restrict the values
+    Specialization: {
+        type: String,
+        enum: [
+            "Hardware",
+            "Software"
+        ]
+    },
 
     // Admin specific
     Designation: String

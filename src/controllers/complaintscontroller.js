@@ -3,28 +3,53 @@ import AppError from "../utils/AppError.js";
 import * as ComplaintService from "../services/userService.js";
 import * as MaintenanceService from "../services/maintainanceService.js";
 
-export const fetchAllComplaintsForMaintenance = catchAsync(async (req, res, next) => {
-  const complaints = await MaintenanceService.getAllComplaints();
+// export const fetchAllComplaintsForMaintenance = catchAsync(async (req, res, next) => {
+  
+//   const complaints = await MaintenanceService.getAllComplaints(req.user._id);
 
-  res.status(200).json({
-    status: 'success',
-    results: complaints.length,
-    data: { complaints },
-  });
-});
+//   res.status(200).json({
+//     status: 'success',
+//     results: complaints.length,
+//     data: { complaints },
+//   });
+// });
+
+// export const updateStatus = catchAsync(async (req, res, next) => {
+//   const { complaintId } = req.params;
+//   const { status, resolutionDetails } = req.body;
+
+//   const complaint = await MaintenanceService.updateComplaintStatus(complaintId, status, resolutionDetails);
+
+//   if (!complaint) {
+//     return next(new AppError('No complaint found with that ID', 404));
+//   }
+
+//   res.status(200).json({
+//     status: 'success',
+//     data: { complaint },
+//   });
+// });
 
 export const updateStatus = catchAsync(async (req, res, next) => {
   const { complaintId } = req.params;
   const { status, resolutionDetails } = req.body;
 
-  const complaint = await MaintenanceService.updateComplaintStatus(complaintId, status, resolutionDetails);
+  const complaint =
+    await MaintenanceService.updateComplaintStatus(
+      complaintId,
+      status,
+      resolutionDetails,
+      req.user.id
+    );
 
   if (!complaint) {
-    return next(new AppError('No complaint found with that ID', 404));
+    return next(
+      new AppError("No complaint found with that ID", 404)
+    );
   }
 
   res.status(200).json({
-    status: 'success',
+    status: "success",
     data: { complaint },
   });
 });
@@ -40,8 +65,8 @@ export const submitForm = catchAsync(async (req, res, next) => {
 });
 
 export const fetchAllComplaint = catchAsync(async (req, res, next) => {
-  const userId = req.user._id;
-  const complaints = await ComplaintService.fetchAllComplaints(userId);
+  // const userId = req.user._id;
+  const complaints = await ComplaintService.fetchAllComplaints( req.user);
 
   res.status(200).json({
     status: 'success',
