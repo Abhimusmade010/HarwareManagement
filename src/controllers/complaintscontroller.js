@@ -33,13 +33,14 @@ import * as MaintenanceService from "../services/maintainanceService.js";
 export const updateStatus = catchAsync(async (req, res, next) => {
   const { complaintId } = req.params;
   const { status, resolutionDetails } = req.body;
-
+  console.log("req.user:", req.user);
   const complaint =
     await MaintenanceService.updateComplaintStatus(
       complaintId,
       status,
       resolutionDetails,
-      req.user.id
+      req.user._id,
+      req.user.Role
     );
 
   if (!complaint) {
@@ -52,6 +53,7 @@ export const updateStatus = catchAsync(async (req, res, next) => {
     status: "success",
     data: { complaint },
   });
+
 });
 
 export const submitForm = catchAsync(async (req, res, next) => {

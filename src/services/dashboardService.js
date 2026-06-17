@@ -144,7 +144,7 @@ const getCategoryStatistics = async (user) => {
   return categoryStats;
 };
 
-export const searchService = async (user,queryParams) => {
+const searchService = async (user,queryParams) => {
 
   let filter = {};
 
@@ -159,17 +159,27 @@ export const searchService = async (user,queryParams) => {
   }
 
   // Dynamic filters
-  if (queryParams.status) {
-    filter.status = queryParams.status;
-  }
+    if (queryParams.status) {
+    filter.status = {
+        $regex: `^${queryParams.status}$`,
+        $options: "i",
+    };
+    }
 
   if (queryParams.department) {
-    filter.department = queryParams.department;
+    filter.department = {
+      $regex: `^${queryParams.department}$`,
+      $options: "i",
+    };
   }
 
-  if (queryParams.category) {
-    filter.category = queryParams.category;
-  }
+    if (queryParams.category) {
+        filter.category = {
+            $regex: `^${queryParams.category}$`,
+            $options: "i",
+        };
+    }
+
 
   // Text Search
   if (queryParams.search) {

@@ -39,13 +39,7 @@ export const submitComplaints = async (data, userId) => {
   return newComplaint;
 };
 
-// export const fetchAllComplaints = async (userId) => {
-//   const complaints = await Complaint.find({ userId })
-//     .select("status category priority assetId description createdAt")
-//     .sort({ createdAt: -1 });
 
-//   return complaints;
-// };
 export const fetchAllComplaints = async (user) => {
 
     // this route will be common for admin maintenance and user, so we will check the role of the user and return the complaints accordingly

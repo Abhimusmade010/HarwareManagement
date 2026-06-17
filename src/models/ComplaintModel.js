@@ -96,13 +96,8 @@ const complaintSchema = new mongoose.Schema(
     timestamps: true   // ✅ Correct
   }
 );
-// complaintSchema.pre('save', function(next) {
-//   this.updatedAt = Date.now();
-//   next();
-// });
 
-const Complaint =
-  mongoose.models.Complaint ||
-  mongoose.model("Complaint", complaintSchema);
+
+const Complaint =mongoose.models.Complaint || mongoose.model("Complaint", complaintSchema);
 
 export default Complaint;
