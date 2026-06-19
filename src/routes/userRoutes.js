@@ -14,22 +14,22 @@ import { changeProfile } from "../controllers/authController.js";
 
 
 
-
-
-
-
 router.post("/signup", validate(signUpSchema), signUpUser);
 router.post("/login", validate(loginSchema), loginUser);
-router.get("/me", getMe);
 
 
 router.use(protect);
 
 router.patch("/complete-profile", validate(profileSchema), changeProfile);
+router.get("/me", getMe);
+
 // Profile routes
+// this can be used common to all users to change their password 
 router.patch("/change-password",protect,validate(changePasswordSchema),changePassword);
 
-
+// now forget password route 
+// when user hit forget password route,first verify with the opt to mail and then allow them to change the password without current password
+// router.post("/forgot-password",protect,forgotPassword);
 
 
 

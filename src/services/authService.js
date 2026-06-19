@@ -196,8 +196,10 @@ const completeProfile = async (userId, data) => {
     user.MobileNo = data.MobileNo || user.MobileNo;
     user.CabinNo = data.CabinNo || user.CabinNo;
     user.Department = data.Department || user.Department;
-    user.Specialization = data.Specialization || user.Specialization;
     user.Designation = data.Designation || user.Designation;
+    if(user.Role === "maintainance") {
+        user.Specialization = data.Specialization || user.Specialization;
+    }
 
     user.profileCompleted = true;
 

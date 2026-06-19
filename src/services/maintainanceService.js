@@ -17,11 +17,7 @@ export const updateComplaintStatus = async (complaintId,status,resolutionDetails
 
       // Only assigned manager can update 
       //admin can update any complaint, but maintainance can only update the complaints assigned to them
-      console.log("i am in the update complate service ")
-      console.log("Role is",role)
-      console.log("userId is",userId)
-      console.log("complaint.assignedTo is",complaint.assignedTo)
-      console.log("complaint.assignedTo.toString() is",complaint.assignedTo.toString())
+      
       
       if (role !== "admin" && complaint.assignedTo.toString() !== userId.toString()) {
         throw new AppError(
@@ -30,14 +26,40 @@ export const updateComplaintStatus = async (complaintId,status,resolutionDetails
         );
       }
 
+      //check for valid status transition
+      if (complaint.status === status) {
+        throw new AppError(
+          `Complaint is already ${status}`,
+          400
+        );
+      }
+      const oldStatus = complaint.status;
+
       complaint.status = status;
+
       complaint.updatedAt = Date.now();
 
+
+      if (status === "resolved" &&!resolutionDetails) {
+        throw new AppError(
+          "Resolution details are required"
+        );
+      }
 
       if (status === "resolved") {
         complaint.resolutionDate = Date.now();
         complaint.resolutionDetails = resolutionDetails;
+
+        //add to resolvedby field
+         complaint.resolvedBy = userId;
       }
+
+      complaint.statusHistory.push({
+        oldStatus,
+        newStatus: status,
+        changedBy: userId,
+        remarks: resolutionDetails || ""
+      });
 
       await complaint.save();
       

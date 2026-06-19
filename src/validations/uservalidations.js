@@ -49,8 +49,8 @@ const changePasswordSchema = z.object({
 });
 
 const profileSchema = z.object({
-    MobileNo: z.string().max(15),
-    CabinNo: z.number().max(10),
+    MobileNo: z.string().regex(/^[0-9]{10}$/, "Mobile number must be 10 digits"),
+    CabinNo: z.string().max(100),
     Department: z.string().max(100),
     Specialization: z.string().max(100),
     Designation: z.string().max(100)

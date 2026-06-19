@@ -3,32 +3,6 @@ import AppError from "../utils/AppError.js";
 import * as ComplaintService from "../services/userService.js";
 import * as MaintenanceService from "../services/maintainanceService.js";
 
-// export const fetchAllComplaintsForMaintenance = catchAsync(async (req, res, next) => {
-  
-//   const complaints = await MaintenanceService.getAllComplaints(req.user._id);
-
-//   res.status(200).json({
-//     status: 'success',
-//     results: complaints.length,
-//     data: { complaints },
-//   });
-// });
-
-// export const updateStatus = catchAsync(async (req, res, next) => {
-//   const { complaintId } = req.params;
-//   const { status, resolutionDetails } = req.body;
-
-//   const complaint = await MaintenanceService.updateComplaintStatus(complaintId, status, resolutionDetails);
-
-//   if (!complaint) {
-//     return next(new AppError('No complaint found with that ID', 404));
-//   }
-
-//   res.status(200).json({
-//     status: 'success',
-//     data: { complaint },
-//   });
-// });
 
 export const updateStatus = catchAsync(async (req, res, next) => {
   const { complaintId } = req.params;
@@ -79,8 +53,7 @@ export const fetchAllComplaint = catchAsync(async (req, res, next) => {
 
 export const fetchoneComplaint = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const userId = req.user._id;
-  const complaint = await ComplaintService.fetchone(id, userId);
+  const complaint = await ComplaintService.fetchone(id, req.user);
 
   if (!complaint) {
     return next(new AppError('No complaint found with that ID', 404));
@@ -113,12 +86,10 @@ export const topComplaintCategories = catchAsync(async (req, res, next) => {
 });
 
 export const NoteToComplaint = catchAsync(async (req, res, next) => {
-  const userId = req.user._id;
   const complaintId = req.params.id;
   const { message } = req.body;
-  const role = req.user.Role;
 
-  const complaint = await ComplaintService.addNoteToComplaint(userId, complaintId, role, message);
+  const complaint = await ComplaintService.addNoteToComplaint(req.user, complaintId, message);
 
   if (!complaint) {
     return next(new AppError('No complaint found with that ID', 404));
@@ -145,3 +116,4 @@ export const escalateComplaint = catchAsync(async (req, res, next) => {
         data: { complaint }
     });
 });
+

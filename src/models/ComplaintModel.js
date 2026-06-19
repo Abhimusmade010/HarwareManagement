@@ -25,6 +25,38 @@ const noteSchema = new mongoose.Schema({
   { _id: false }            
 );
 
+const statusHistorySchema = new mongoose.Schema({
+  oldStatus: {
+    type: String,
+    default: null
+  },
+
+  newStatus: {
+    type: String,
+    required: true
+  },
+
+  changedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null
+  },
+
+  changedAt: {
+    type: Date,
+    default: Date.now
+  },
+
+  remarks: {
+    type: String,
+    default: ""
+  },
+  action: {
+    type: String,
+    default: "status_change"
+  }
+  
+});
 
 const complaintSchema = new mongoose.Schema(
   {
@@ -79,6 +111,10 @@ const complaintSchema = new mongoose.Schema(
       ref: "User",
       required: true
     },
+    resolvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    },
 
     resolutionDate: Date,
 
@@ -90,7 +126,8 @@ const complaintSchema = new mongoose.Schema(
       }
     ],
 
-    notes: [noteSchema]
+    notes: [noteSchema],
+    statusHistory:[statusHistorySchema],
   },
   {
     timestamps: true   // ✅ Correct
