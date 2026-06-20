@@ -3,10 +3,29 @@ import mongoose from "mongoose";
 import AppError from "../utils/AppError.js";
 import User from "../models/userModel.js";
 import complaintCreationTemplate from "../utils/emailTemplates/complaintCreation.js";
+import {S3Client, PutObjectCommand} from "@aws-sdk/client-s3";
+import dotenv from "dotenv";
+dotenv.config();
 
-export const submitComplaints = async (data, userId) => {
+const bucketName = process.env.AWS_BUCKET_NAME;
+
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
+});
+
+
+export const submitComplaints = async (data, image,userId) => {
+
   const { assetId, description, category, priority } = data;
 
+    console.log("Image Data received in submitComplaints:", image);
+    // this will contain image buffer,original file name,mimetype,encoding and size of the file
+    // you can use this data to store the image in your database or cloud storage like AWS S3
+    // for now we will just log the image data to the console
    const manager = await User.findOne({
         Role: "maintainance",
         Specialization: category
@@ -19,27 +38,41 @@ export const submitComplaints = async (data, userId) => {
         );
     }
 
-
-  const newComplaint = await Complaint.create({
-    assetId: Number(assetId),
-    userId: userId,
-    description: description,
-    category: category,
-    assignedTo: manager._id,
-    priority: priority || "Medium",
-
-    status:"assigned",
-
-    // added the status History in the complaint model to keep track of the status changes and who changed it and when
-     statusHistory: [
-    {
-      oldStatus: null,
-      newStatus: "assigned",
-      changedBy: null,
-      remarks: `Auto assigned to ${manager.Name}`
+    const params={
+        Bucket: bucketName,
+        Key:image.originalname, // you can change the file name to something unique if you want
+        Body:image.buffer,
+        ContentType:image.mimetype
     }
-  ]
-  });
+    const command=new PutObjectCommand(params);
+    console.log("command", command);
+    await s3.send(command);
+
+    const imageUrl =`https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
+    console.log("Image uploaded to S3 with URL:", imageUrl);
+
+
+    const newComplaint = await Complaint.create({
+        assetId: Number(assetId),
+        userId: userId,
+        description: description,
+        category: category,
+        assignedTo: manager._id,
+        priority: priority || "Medium",
+        attachments: [imageUrl], // Store the S3 URL of the uploaded image
+
+        status:"assigned",
+
+        // added the status History in the complaint model to keep track of the status changes and who changed it and when
+        statusHistory: [
+        {
+        oldStatus: null,
+        newStatus: "assigned",
+        changedBy: null,
+        remarks: `Auto assigned to ${manager.Name}`
+        }
+    ]
+    });
 
 
 
@@ -56,12 +89,9 @@ export const submitComplaints = async (data, userId) => {
 };
 
 
-export const fetchAllComplaints = async (user) => {
-
-    // this route will be common for admin maintenance and user, so we will check the role of the user and return the complaints accordingly
+export const fetchAllComplaints = async (user, page = 1, limit = 10, search = "", status = "all", category = "all") => {
     let filter = {};
 
-    //
     if (user.Role === "maintainance") {
         filter.assignedTo = user._id;
     }
@@ -70,17 +100,45 @@ export const fetchAllComplaints = async (user) => {
         filter.userId = user._id;
     }
 
-    return await Complaint.find(filter)
-        .populate(
-            "userId",
-            "Name Email Department"
-        )
+    if (status !== "all") {
+        filter.status = status;
+    }
+
+    if (category !== "all") {
+        filter.category = category;
+    }
+
+    if (search) {
+        const searchRegex = new RegExp(search, 'i');
+        const searchConditions = [{ description: searchRegex }];
+        
+        if (!isNaN(search)) {
+            searchConditions.push({ assetId: Number(search) });
+        }
+        
+        filter.$or = searchConditions;
+    }
+
+    const skip = (page - 1) * limit;
+
+    const complaints = await Complaint.find(filter)
+        .populate("userId", "Name Email Department")
         .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
         .lean();
-    // return await Complaint.findById(complaintId)
-    //       .populate("userId", "Name Email")
-    //       .populate("assignedTo", "Name Email")
-    //       .populate("statusHistory.changedBy", "Name Email Role");
+
+    const total = await Complaint.countDocuments(filter);
+
+    return {
+        complaints,
+        pagination: {
+            total,
+            page,
+            pages: Math.ceil(total / limit),
+            limit
+        }
+    };
 };
 
 export const fetchone = async (complaintId, user) => {
@@ -119,37 +177,49 @@ export const addNoteToComplaint = async (user, complaintId, message) => {
   return complaint;
 };
 
-// export const complaintData = async (userId) => {
-//   const stats = await Complaint.aggregate([
-//     {
-//       $match: { userId: new mongoose.Types.ObjectId(userId) }
-//     },
-//     {
-//       $group: {
-//         _id: "$status",
-//         count: { $sum: 1 }
-//       }
-//     }
-//   ]);
+export const complaintData = async (user) => {
+  let filter = {};
 
-//   const response = {
-//     total: 0,
-//     pending: 0,
-//     resolved: 0,
-//     inProgress: 0,
-//     escalated: 0
-//   };
+  if (user.Role === "maintainance") {
+      filter.assignedTo = user._id;
+  } else if (user.Role === "user") {
+      filter.userId = user._id;
+  }
 
-//   stats.forEach(item => {
-//     response.total += item.count;
-//     const statusKey = item._id === "in-progress" ? "inProgress" : item._id;
-//     if (response.hasOwnProperty(statusKey)) {
-//       response[statusKey] = item.count;
-//     }
-//   });
+  const stats = await Complaint.aggregate([
+    { $match: filter },
+    {
+      $group: {
+        _id: "$status",
+        count: { $sum: 1 }
+      }
+    }
+  ]);
 
-//   return response;
-// };
+  const response = {
+    total: 0,
+    pending: 0,
+    resolved: 0,
+    inProgress: 0,
+    escalated: 0,
+    closed: 0,
+  };
+
+  stats.forEach(item => {
+    response.total += item.count;
+    const statusKey = item._id === "in-progress" ? "inProgress" : item._id;
+    if (response.hasOwnProperty(statusKey)) {
+      response[statusKey] = item.count;
+    } else {
+        response.pending += item.count; // fallback for assigned etc if not explicitly tracked
+    }
+  });
+  
+  // Re-calculate pending as not resolved/closed
+  response.pending = response.total - response.resolved - response.closed;
+
+  return response;
+};
 
 export const topCategories = async (userId) => {
   const stats = await Complaint.aggregate([

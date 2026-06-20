@@ -31,8 +31,12 @@ export const updateStatus = catchAsync(async (req, res, next) => {
 });
 
 export const submitForm = catchAsync(async (req, res, next) => {
+  console.log("Received complaint submission:", req.body);
+  console.log("Received file:", req.file);
   const userId = req.user._id;
-  const complaint = await ComplaintService.submitComplaints(req.body, userId);
+  const image = req.file;
+  
+  const complaint = await ComplaintService.submitComplaints(req.body,image,userId);
 
   res.status(201).json({
     status: 'success',
@@ -41,13 +45,19 @@ export const submitForm = catchAsync(async (req, res, next) => {
 });
 
 export const fetchAllComplaint = catchAsync(async (req, res, next) => {
-  // const userId = req.user._id;
-  const complaints = await ComplaintService.fetchAllComplaints( req.user);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.search || "";
+  const statusFilter = req.query.status || "all";
+  const categoryFilter = req.query.category || "all";
+
+  const result = await ComplaintService.fetchAllComplaints(req.user, page, limit, search, statusFilter, categoryFilter);
 
   res.status(200).json({
     status: 'success',
-    results: complaints.length,
-    data: { complaints },
+    results: result.complaints.length,
+    pagination: result.pagination,
+    data: { complaints: result.complaints },
   });
 });
 
@@ -66,8 +76,7 @@ export const fetchoneComplaint = catchAsync(async (req, res, next) => {
 });
 
 export const complaintStats = catchAsync(async (req, res, next) => {
-  const userId = req.user._id;
-  const stats = await ComplaintService.complaintData(userId);
+  const stats = await ComplaintService.complaintData(req.user);
 
   res.status(200).json({
     status: 'success',
