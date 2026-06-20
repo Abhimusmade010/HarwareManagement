@@ -3,11 +3,16 @@ import mongoose from "mongoose";
 import AppError from "../utils/AppError.js";
 import User from "../models/userModel.js";
 import complaintCreationTemplate from "../utils/emailTemplates/complaintCreation.js";
-import {S3Client, PutObjectCommand} from "@aws-sdk/client-s3";
+import {S3Client, PutObjectCommand,GetObjectCommand} from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
 dotenv.config();
 
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+// import { S3Client,  } from "@aws-sdk/client-s3";
+
 const bucketName = process.env.AWS_BUCKET_NAME;
+
+
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -38,18 +43,37 @@ export const submitComplaints = async (data, image,userId) => {
         );
     }
 
-    const params={
-        Bucket: bucketName,
-        Key:image.originalname, // you can change the file name to something unique if you want
-        Body:image.buffer,
-        ContentType:image.mimetype
-    }
-    const command=new PutObjectCommand(params);
-    console.log("command", command);
-    await s3.send(command);
+    // now the predesigned url to store on the database so that users can access the image from the database and not from the local storage of the server, so we will use AWS S3 to store the image and get the url of the image and store it in the database
+    // const key = `complaints/${Date.now()}-${image.originalname}`;
 
-    const imageUrl =`https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
-    console.log("Image uploaded to S3 with URL:", imageUrl);
+    // const params={
+    //     Bucket: bucketName,
+    //     Key:key, // you can change the file name to something unique if you want
+    //     Body:image.buffer,
+    //     ContentType:image.mimetype
+    // }
+    // const command=new PutObjectCommand(params);
+    // console.log("command", command);
+    // await s3.send(command);
+
+
+    let attachments = [];
+
+    if(image){
+        const key = `complaints/${Date.now()}-${image.originalname}`;
+
+        await s3.send(new PutObjectCommand({
+            Bucket: bucketName,
+            Key: key,
+            Body: image.buffer,
+            ContentType: image.mimetype
+        }));
+
+        attachments.push(key);
+    }
+
+    // const imageUrl =`https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
+    // console.log("Image uploaded to S3 with URL:", imageUrl);
 
 
     const newComplaint = await Complaint.create({
@@ -59,7 +83,7 @@ export const submitComplaints = async (data, image,userId) => {
         category: category,
         assignedTo: manager._id,
         priority: priority || "Medium",
-        attachments: [imageUrl], // Store the S3 URL of the uploaded image
+        attachments: attachments, // Store the S3 URL of the uploaded image
 
         status:"assigned",
 
@@ -150,7 +174,43 @@ export const fetchone = async (complaintId, user) => {
         filter.userId = user._id;
     }
 
+
     const complaint = await Complaint.findOne(filter);
+
+    // const client = new S3Client(clientParams);
+    // const getObjectParams = {
+    //     Bucket: bucketName,
+    //     Key:complaint.attachments[0] 
+    // };
+    // const command = new GetObjectCommand(getObjectParams);
+    // const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+
+    //feteching only one complaint
+    
+    // complaint.attachments = complaint.attachments.map(attachment => {
+    //         return url; // Replace with the signed URL for each attachment
+    // });
+
+
+    
+    if (complaint.attachments.length > 0) {
+        complaint.attachments = await Promise.all(
+            complaint.attachments.map(async (key) => {
+
+                const command = new GetObjectCommand({
+                    Bucket: bucketName,
+                    Key: key
+                });
+
+                return await getSignedUrl(
+                    s3,
+                    command,
+                    { expiresIn: 3600 }
+                );
+            })
+        );
+    }
+
     return complaint;
 };
 
