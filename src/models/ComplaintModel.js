@@ -67,7 +67,7 @@ const complaintSchema = new mongoose.Schema(
     },
 
     assetId: {
-      type: Number,
+      type: String,
       required: true,
       index: true
     },

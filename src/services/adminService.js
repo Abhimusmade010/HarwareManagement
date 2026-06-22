@@ -7,7 +7,7 @@ const normalizeEmail = (email) => email.trim().toLowerCase();
 
 const createMaintenanceUser = async (data) => {
 
-    const { Name, Email } = data;
+    const { Name, Email,Specialization } = data;
 
     const existingUser =
         await User.findOne({
@@ -33,7 +33,7 @@ const createMaintenanceUser = async (data) => {
             Password: hashedPassword,
 
             Role: "maintainance",
-
+            Specialization,
             mustChangePassword: true,
 
             profileCompleted: false

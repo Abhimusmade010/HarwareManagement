@@ -8,10 +8,6 @@ router.use(protect);
 
 router.get("/my-activity", ReportController.getUserReport);
 
-router.get(
-    "/department-summary", 
-    restrictTo("admin", "maintainance"), 
-    ReportController.getDepartmentReport
-);
+router.get("/department-summary", restrictTo("admin", "maintainance"), ReportController.getDepartmentReport);
 
 export default router;
