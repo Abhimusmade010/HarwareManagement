@@ -78,10 +78,12 @@ export const fetchoneComplaint = catchAsync(async (req, res, next) => {
 export const complaintStats = catchAsync(async (req, res, next) => {
   const stats = await ComplaintService.complaintData(req.user);
 
+  
   res.status(200).json({
     status: 'success',
     data: { stats },
   });
+
 });
 
 export const topComplaintCategories = catchAsync(async (req, res, next) => {

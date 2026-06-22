@@ -14,6 +14,10 @@ export const updateComplaintStatus = async (complaintId,status,resolutionDetails
       if (!complaint) {
         return null;
       }
+      
+      const oldStatus = complaint.status;
+      const newStatus = status;
+      
 
       // Only assigned manager can update 
       //admin can update any complaint, but maintainance can only update the complaints assigned to them
@@ -27,26 +31,25 @@ export const updateComplaintStatus = async (complaintId,status,resolutionDetails
       }
 
       //check for valid status transition
-      if (complaint.status === status) {
+      if (complaint.status === newStatus) {
         throw new AppError(
-          `Complaint is already ${status}`,
+          `Complaint is already ${newStatus}`,
           400
         );
       }
-      const oldStatus = complaint.status;
 
-      complaint.status = status;
+      complaint.status = newStatus;
 
       complaint.updatedAt = Date.now();
 
 
-      if (status === "resolved" &&!resolutionDetails) {
+      if (newStatus === "resolved" &&!resolutionDetails) {
         throw new AppError(
           "Resolution details are required"
         );
       }
 
-      if (status === "resolved") {
+      if (newStatus === "resolved") {
         complaint.resolutionDate = Date.now();
         complaint.resolutionDetails = resolutionDetails;
 
@@ -56,7 +59,7 @@ export const updateComplaintStatus = async (complaintId,status,resolutionDetails
 
       complaint.statusHistory.push({
         oldStatus,
-        newStatus: status,
+        newStatus: newStatus,
         changedBy: userId,
         remarks: resolutionDetails || ""
       });
@@ -65,14 +68,18 @@ export const updateComplaintStatus = async (complaintId,status,resolutionDetails
       
       //=======send email to the user about the status update===========
       try{
-        if (status === "resolved"){
-          await complaintResolvedEmail(complaint);
-        }else if (status === "in-progress") {
-          await complaintInProgressEmail(complaint);
-        } 
-        else{
-          await complaintStatusUpdatedEmail(complaint);
+        if(oldStatus !== newStatus){
+              if (complaint.status === "resolved"){
+                await complaintResolvedEmail(complaint);
+              }
+              else if (complaint.status === "in-progress") {
+                await complaintInProgressEmail(complaint);
+              } 
+              else{
+                await complaintStatusUpdatedEmail(complaint);
+              }     
         }
+       
       } 
 
       catch(err){

@@ -4,7 +4,7 @@ import { protect, restrictTo } from "../middleware/authMiddleware.js";
 import validate from "../middleware/validations.js";
 import { comSchema } from "../validations/complaintvalidatons.js";
 import { updateStatus } from "../controllers/complaintscontroller.js";
-const   router = express.Router();
+const       router = express.Router();
 import multer from "multer";
 
 // Protect all routes below

@@ -59,18 +59,25 @@ export const submitComplaints = async (data, image,userId) => {
 
     let attachments = [];
 
-    if(image){
-        const key = `complaints/${Date.now()}-${image.originalname}`;
+    // if aws s3 goes down or image upload fails for some reason, we still want to create the complaint without the image, so we will wrap the image upload in a try catch block and if it fails, we will just log the error and continue with the complaint creation without the image
+    try{
+         if(image){
+            const key = `complaints/${Date.now()}-${image.originalname}`;
 
-        await s3.send(new PutObjectCommand({
-            Bucket: bucketName,
-            Key: key,
-            Body: image.buffer,
-            ContentType: image.mimetype
-        }));
+            await s3.send(new PutObjectCommand({
+                Bucket: bucketName,
+                Key: key,
+                Body: image.buffer,
+                ContentType: image.mimetype
+            }));
 
-        attachments.push(key);
+            attachments.push(key);
+        }
+
+    }catch(err){
+        console.error("Image upload failed:", err.message);
     }
+   
 
     // const imageUrl =`https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
     // console.log("Image uploaded to S3 with URL:", imageUrl);
@@ -151,6 +158,18 @@ export const fetchAllComplaints = async (user, page = 1, limit = 10, search = ""
         .skip(skip)
         .limit(limit)
         .lean();
+
+    // if(complaints.length === 0 && page > 1){
+    //     return {
+    //         complaints: [], 
+    //         pagination: {
+    //             total: 0,
+    //             page,
+    //             pages: 0,
+    //             limit
+    //         }
+    //     };
+    // }
 
     const total = await Complaint.countDocuments(filter);
 
@@ -239,13 +258,23 @@ export const addNoteToComplaint = async (user, complaintId, message) => {
 
 export const complaintData = async (user) => {
   let filter = {};
+    
 
   if (user.Role === "maintainance") {
       filter.assignedTo = user._id;
   } else if (user.Role === "user") {
       filter.userId = user._id;
   }
-
+//   else if (user.Role === "admin") {
+//       // admin can see all complaints, so no filter needed
+//   }
+  
+  // if there are  no complaints in the db then the aggregate function will return an empty array and we need to handle that case as well
+    if(user.Role=== "admin"){
+        // admin can see all complaints, so we will not filter by userId or assignedTo
+        filter = {};
+        
+    }   
   const stats = await Complaint.aggregate([
     { $match: filter },
     {
@@ -254,8 +283,19 @@ export const complaintData = async (user) => {
         count: { $sum: 1 }
       }
     }
-  ]);
+  ]);  
+    // if(stats.length === 0){
+    //     return {
+    //         total: 0,
+    //         pending: 0,
+    //         resolved: 0,
+    //         inProgress: 0,
+    //         escalated: 0,
+    //         closed: 0,
+    //     };
+    // }
 
+ 
   const response = {
     total: 0,
     pending: 0,
@@ -277,6 +317,7 @@ export const complaintData = async (user) => {
   
   // Re-calculate pending as not resolved/closed
   response.pending = response.total - response.resolved - response.closed;
+//   if(response.pending < 0) response.pending = 0; // just in case of any mismatch
 
   return response;
 };
