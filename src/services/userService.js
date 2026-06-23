@@ -153,7 +153,9 @@ export const fetchAllComplaints = async (user, page = 1, limit = 10, search = ""
     const skip = (page - 1) * limit;
 
     const complaints = await Complaint.find(filter)
-        .populate("userId", "Name Email Department")
+        .populate("userId", "Name Email Department " )
+
+
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -170,6 +172,16 @@ export const fetchAllComplaints = async (user, page = 1, limit = 10, search = ""
     //         }
     //     };
     // }
+    // also sending the manager to whom the complaint is assigned to in the response so that the user can see the manager details in the complaint list page
+    for (let complaint of complaints) {
+        if (complaint.assignedTo) {
+            
+            const manager = await User.findById(complaint.assignedTo).select("Email");
+            complaint.assignedTo = manager;
+            // complaint.priority = complaint.priority || "Medium"; // Default to "Medium" if priority is not set
+        }
+    }
+
 
     const total = await Complaint.countDocuments(filter);
 
