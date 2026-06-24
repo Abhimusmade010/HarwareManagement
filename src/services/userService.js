@@ -6,13 +6,10 @@ import complaintCreationTemplate from "../utils/emailTemplates/complaintCreation
 import {S3Client, PutObjectCommand,GetObjectCommand} from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
 dotenv.config();
-
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 // import { S3Client,  } from "@aws-sdk/client-s3";
 
 const bucketName = process.env.AWS_BUCKET_NAME;
-
-
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -118,7 +115,6 @@ export const submitComplaints = async (data, image,userId) => {
 
   return newComplaint;
 };
-
 
 export const fetchAllComplaints = async (user, page = 1, limit = 10, search = "", status = "all", category = "all") => {
     let filter = {};

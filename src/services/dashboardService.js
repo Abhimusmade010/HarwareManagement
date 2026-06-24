@@ -1,5 +1,5 @@
 import Complaint from "../models/complaintModel.js";
-
+import ExcelJS from "exceljs";
 
 const getDashboardStatisticss = async (user) => {
 
@@ -208,5 +208,88 @@ const searchService = async (user,queryParams) => {
 
 };
 
-export { getDashboardStatisticss ,getDepartmentStatistics,getCategoryStatistics,searchService};
+const downloadSheetService = async (user, queryParams) => {
+  let filter = {};
+
+  // based on the user role, we will filter the complaints accordingly
+
+  if (user.Role === "user") {
+    filter.userId = user._id;
+  }
+
+  if (user.Role === "maintainance") {
+    filter.assignedTo = user._id;
+  }
+
+
+  // is user wants to download based on any filter like status, department or category, we will apply those filters as well
+  if (queryParams.status) {
+    filter.status = {
+      $regex: `^${queryParams.status}$`,
+      $options: "i",
+    };
+  }
+
+  if (queryParams.department) {
+    filter.department = {
+      $regex: `^${queryParams.department}$`,
+      $options: "i",
+    };
+  }
+
+  if (queryParams.category) {
+    filter.category = {
+      $regex: `^${queryParams.category}$`,
+      $options: "i",
+    };
+  }
+
+  // Text Search
+  if (queryParams.search) {
+    filter.$or = [
+      {
+        title: {
+          $regex: queryParams.search,
+          $options: "i",
+        },
+      },
+      {
+        description: {
+          $regex: queryParams.search,
+          $options: "i",
+        },
+      },
+    ];
+  }
+
+  const complaints = await Complaint.find(filter).sort("-createdAt");
+
+
+  // create the workBoook using Exceljs library
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Complaints");
+
+  worksheet.columns = [
+    { header: "Complaint ID", key: "_id", width: 30 },
+    { header: "Category", key: "category", width: 20 },
+    { header: "Priority", key: "priority", width: 15 },
+    { header: "Status", key: "status", width: 15 },
+    { header: "Description", key: "description", width: 50 },
+  ];
+
+  complaints.forEach((c) => {
+    worksheet.addRow({
+      _id: c._id.toString(),
+      category: c.category,
+      priority: c.priority,
+      status: c.status,
+      description: c.description,
+    });
+  });
+
+  return workbook;
+};
+
+
+export { getDashboardStatisticss ,getDepartmentStatistics,getCategoryStatistics,searchService,downloadSheetService};
 

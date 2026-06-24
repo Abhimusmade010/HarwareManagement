@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
+import Complaint from "../models/ComplaintModel.js";
 // import { normalizeEmail } from "../utils/normalizeEmail.js";
 import { welcomeMaintenanceEmail } from "../utils/emailTemplates/welcomeEmail.js";
 const normalizeEmail = (email) => email.trim().toLowerCase();
@@ -52,6 +53,31 @@ const createMaintenanceUser = async (data) => {
 };
 
 
+const getMaintenanceEngineersWithStats = async () => {
+    const engineers = await User.find({ Role: "maintainance" }).select("-Password");
+    
+    const engineerStats = await Promise.all(engineers.map(async (eng) => {
+        const stats = await Complaint.aggregate([
+            { $match: { assignedTo: eng._id } },
+            { $group: { _id: "$status", count: { $sum: 1 } } }
+        ]);
 
+        let total = 0, pending = 0, resolved = 0, inProgress = 0, escalated = 0;
+        stats.forEach(s => {
+            total += s.count;
+            if (s._id === "resolved" || s._id === "closed") resolved += s.count;
+            else if (s._id === "in-progress") inProgress += s.count;
+            else if (s._id === "escalated") escalated += s.count;
+            else pending += s.count;
+        });
+        
+        return {
+            ...eng.toObject(),
+            stats: { total, pending, resolved, inProgress, escalated }
+        };
+    }));
+    
+    return engineerStats;
+};
 
-export {createMaintenanceUser};
+export { createMaintenanceUser, getMaintenanceEngineersWithStats };

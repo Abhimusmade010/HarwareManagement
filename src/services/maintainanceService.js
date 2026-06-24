@@ -56,6 +56,11 @@ export const updateComplaintStatus = async (complaintId,status,resolutionDetails
         //add to resolvedby field
          complaint.resolvedBy = userId;
       }
+      
+      if (newStatus === "escalated") {
+        complaint.escalated = true;
+        complaint.priority = 'Critical';
+      }
 
       complaint.statusHistory.push({
         oldStatus,

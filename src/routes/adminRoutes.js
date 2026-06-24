@@ -2,7 +2,7 @@ import  express from "express";
 import {updateStatus } from "../controllers/complaintscontroller.js";
 import validate from "../middleware/validations.js";
 import { createMaintenanceSchema } from "../validations/uservalidations.js";
-import { createMaintenanceUserController } from "../controllers/adminController.js";
+import { createMaintenanceUserController, getMaintenanceEngineersController } from "../controllers/adminController.js";
 import { protect, restrictTo } from "../middleware/authMiddleware.js";
 const router=express.Router();
 
@@ -13,6 +13,8 @@ const router=express.Router();
 
 
 router.post("/create-maintenance",protect,restrictTo("admin"),validate(createMaintenanceSchema),createMaintenanceUserController);
+
+router.get("/engineers", protect, restrictTo("admin"), getMaintenanceEngineersController);
 
 
 // router.patch("/updatestatus/:complaintId",protect,restrictTo("maintainance"),updateStatus);
