@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
 
+
+
 import connectDB from "./config/db.js";
 connectDB();
 
@@ -11,6 +13,7 @@ import AppError from "./utils/AppError.js";
 import errorMiddleware from "./middleware/errorMiddleware.js";
 
 const app = express();
+app.use(helmet());
 
 // Middlewares
 app.use(cors({

@@ -4,6 +4,7 @@ import User from "../models/userModel.js";
 import Complaint from "../models/ComplaintModel.js";
 // import { normalizeEmail } from "../utils/normalizeEmail.js";
 import { welcomeMaintenanceEmail } from "../utils/emailTemplates/welcomeEmail.js";
+import AppError from "../utils/AppError.js";
 const normalizeEmail = (email) => email.trim().toLowerCase();
 
 const createMaintenanceUser = async (data) => {
@@ -16,8 +17,9 @@ const createMaintenanceUser = async (data) => {
         });
 
     if (existingUser) {
-        throw new Error(
-            "User already exists"
+        AppError.throwError(
+            "A user with this email already exists",
+            400
         );
     }
 
@@ -51,7 +53,6 @@ const createMaintenanceUser = async (data) => {
         // tempPassword
     };
 };
-
 
 const getMaintenanceEngineersWithStats = async () => {
     const engineers = await User.find({ Role: "maintainance" }).select("-Password");

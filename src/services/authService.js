@@ -79,13 +79,15 @@ const logUser = async (data) => {
     const user = await User.findOne({ Email: normalizedEmail });
     // Use generic error message for both not found and wrong password
     if (!user) {
-        throw new Error("Invalid credentials");
+        // throw new Error("Invalid credentials");
+        AppError.throwError("Invalid credentials", 401);
     }
 
     // Compare password
     const isMatch = await bcrypt.compare(Password, user.Password);
     if (!isMatch) {
-        throw new Error("Invalid credentials");
+        // throw new Error("Invalid credentials");
+        AppError.throwError("Invalid credentials", 401);
     }
 
     // Generate the token
@@ -127,11 +129,11 @@ const logUser = async (data) => {
 
 const getProfile = async (userId) => {
     if (!userId) {
-        throw new Error("User Id is required");
+        AppError.throwError("User Id is required", 400);
     }
     const user = await User.findById(userId).select("-Password");
     if (!user) {
-        throw new Error("User not found");
+        AppError.throwError("User not found", 404);
     }
     return user;
 };
@@ -148,9 +150,7 @@ const changePassword = async (userId,data) => {
         await User.findById(userId);
 
     if (!user) {
-        throw new Error(
-            "User not found"
-        );
+        AppError.throwError("User not found", 404);
     }
 
     const isMatch =
@@ -160,9 +160,8 @@ const changePassword = async (userId,data) => {
         );
 
     if (!isMatch) {
-        throw new Error(
-            "Current password is incorrect"
-        );
+        AppError.throwError("Current password is incorrect", 400);
+    
     }
 
     const hashedPassword =
@@ -189,7 +188,8 @@ const changePassword = async (userId,data) => {
 const completeProfile = async (userId, data) => {
     const user = await User.findById(userId);
     if (!user) {
-        throw new Error("User not found");
+        // throw new Error("User not found");
+        AppError.throwError("User not found", 404);
     }   
 
     // Update the user profile fields

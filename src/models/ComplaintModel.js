@@ -126,13 +126,35 @@ const complaintSchema = new mongoose.Schema(
       }
     ],
 
+    
     notes: [noteSchema],
     statusHistory:[statusHistorySchema],
   },
+
   {
     timestamps: true   // ✅ Correct
   }
 );
+
+// this is for the dashboard statistics, so we can use this index to improve the performance of queries that filter by userId, assetId, status and assignedTo
+
+complaintSchema.index({ userId: 1 });
+
+complaintSchema.index({ assignedTo: 1 });
+
+complaintSchema.index({ status: 1 });
+
+complaintSchema.index({ category: 1 });
+
+complaintSchema.index({
+  assignedTo: 1,
+  status: 1
+});
+
+complaintSchema.index({
+  userId: 1,
+  status: 1
+});
 
 
 const Complaint =mongoose.models.Complaint || mongoose.model("Complaint", complaintSchema);

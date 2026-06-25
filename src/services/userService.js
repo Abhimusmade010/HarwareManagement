@@ -19,7 +19,6 @@ const s3 = new S3Client({
   }
 });
 
-
 export const submitComplaints = async (data, image,userId) => {
 
   const { assetId, description, category, priority } = data;
@@ -104,16 +103,22 @@ export const submitComplaints = async (data, image,userId) => {
 
 
 
-  await newComplaint.save();
+    await newComplaint.save();
 
 
   
 
-  // ==================send email to the assigned manager with the complaint details=========================
-  console.log("Reached before the mail transfer");
-  await complaintCreationTemplate(newComplaint, manager.Email); // Send email to the assigned manager
+    // ==================send email to the assigned manager with the complaint details=========================
+    console.log("Reached before the mail transfer");
 
-  return newComplaint;
+    // await is removed from the below function call because we don't want to wait for the email to be sent before returning the response to the user, we will send the email in the background and return the response to the user immediately, so that the user doesn't have to wait for the email to be sent and can continue with their work, this is a good practice to improve the performance of the application and user experience
+    complaintCreationTemplate(newComplaint, manager.Email).catch(err => {
+        console.error("Error sending email to manager:", err.message);
+    }
+    );
+    // Send email to the assigned manager
+
+    return newComplaint;
 };
 
 export const fetchAllComplaints = async (user, page = 1, limit = 10, search = "", status = "all", category = "all") => {
@@ -132,7 +137,7 @@ export const fetchAllComplaints = async (user, page = 1, limit = 10, search = ""
     }
 
     if (category !== "all") {
-        filter.category = category;
+        filter.category = { $regex: `^${category}$`, $options: 'i' };
     }
 
     if (search) {
@@ -150,8 +155,7 @@ export const fetchAllComplaints = async (user, page = 1, limit = 10, search = ""
 
     const complaints = await Complaint.find(filter)
         .populate("userId", "Name Email Department " )
-
-
+        .populate("assignedTo", "Name Email")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -169,14 +173,14 @@ export const fetchAllComplaints = async (user, page = 1, limit = 10, search = ""
     //     };
     // }
     // also sending the manager to whom the complaint is assigned to in the response so that the user can see the manager details in the complaint list page
-    for (let complaint of complaints) {
-        if (complaint.assignedTo) {
+    // for (let complaint of complaints) {
+    //     if (complaint.assignedTo) {
             
-            const manager = await User.findById(complaint.assignedTo).select("Email");
-            complaint.assignedTo = manager;
-            // complaint.priority = complaint.priority || "Medium"; // Default to "Medium" if priority is not set
-        }
-    }
+    //         const manager = await User.findById(complaint.assignedTo).select("Email");
+    //         complaint.assignedTo = manager;
+    //         // complaint.priority = complaint.priority || "Medium"; // Default to "Medium" if priority is not set
+    //     }
+    // }
 
 
     const total = await Complaint.countDocuments(filter);
@@ -252,7 +256,10 @@ export const addNoteToComplaint = async (user, complaintId, message) => {
 
     const complaint = await Complaint.findOne(filter);
 
-    if (!complaint) return null;
+    // if (!complaint) return null;
+    if(!complaint){
+        AppError.throwError("No complaint found with that ID", 404);
+    }
 
     complaint.notes.push({
         message: message,
