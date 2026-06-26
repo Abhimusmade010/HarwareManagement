@@ -7,6 +7,8 @@ import {S3Client, PutObjectCommand,GetObjectCommand} from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
 dotenv.config();
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import {reminderEmail} from "../utils/emailTemplates/reminderEmail.js";
+
 // import { S3Client,  } from "@aws-sdk/client-s3";
 
 const bucketName = process.env.AWS_BUCKET_NAME;
@@ -242,6 +244,16 @@ export const fetchone = async (complaintId, user) => {
         );
     }
 
+    // now as this route is run so user must opened this complaint so we will update the seenByManager field to true if the user is a manager and the complaint is assigned to him/her, so that the manager can see which complaints he/she has already seen and which are new
+    if (user.Role === "maintainance" && complaint.assignedTo.toString() === user._id.toString()) {
+        complaint.seenByManager = true;
+        complaint.seenAt = new Date();
+        await complaint.save();
+    }
+    // but if not seen for more than 48 hours then we wull send the remainder to the manager to seee the complaint 
+
+
+
     return complaint;
 };
 
@@ -345,3 +357,57 @@ export const topCategories = async (userId) => {
   ]);
   return stats;
 };
+
+
+// Reminder system
+// Once assigned, if the manager doesn't open the complaint
+// within 48 hours, reminder emails are sent.
+// Maximum 3 reminders are sent.
+
+export const sendComplaintReminderToManagerService = async () => {
+    
+
+    // check for complaints that are assigned to a manager and have not been seen by the manager for more than 48 hours, and send a reminder email to the manager
+    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
+    // and want to send maximum to three reminders to the manager for the same complaint, so we will check the reminderCount field in the complaint model and if it is less than 3 then we will send the reminder email to the manager and increment the reminderCount field by 1, otherwise we will not send the reminder email to the manager
+    const reminderCountLimit = 3;
+    
+    const complaintsToRemind = await Complaint.find({
+        assignedTo: { $ne: null },
+        seenByManager: false,
+        reminderCount: { $lt: reminderCountLimit },
+        createdAt: { $lte: fortyEightHoursAgo },
+
+        $or: [
+            { lastReminderSentAt: null },
+            {
+                lastReminderSentAt: {
+                    $lte: fortyEightHoursAgo
+                }
+            }
+        ]
+    }).populate("assignedTo", "Name Email");
+
+
+    for (const complaint of complaintsToRemind) {
+    try {
+        await reminderEmail(complaint, complaint.assignedTo);
+
+            complaint.reminderCount += 1;
+            // update the lastReminderSentAt field to the current date and time
+            complaint.lastReminderSentAt = new Date();
+
+            await complaint.save();
+
+        } catch (error) {
+            console.error(
+                `Error sending reminder for complaint ${complaint._id}:`,
+                error
+            );
+        }
+    }
+
+
+    
+}

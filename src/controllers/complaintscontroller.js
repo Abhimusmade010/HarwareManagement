@@ -113,6 +113,7 @@ export const NoteToComplaint = catchAsync(async (req, res, next) => {
   });
 });
 
+
 export const escalateComplaint = catchAsync(async (req, res, next) => {
     const { id } = req.params;
     const complaint = await MaintenanceService.escalateComplaint(id);
@@ -128,3 +129,15 @@ export const escalateComplaint = catchAsync(async (req, res, next) => {
     });
 });
 
+
+// export const sendCOmplaintReminderToManager
+//   = catchAsync(async (req, res, next) => {  
+
+//     await ComplaintService.sendComplaintReminderToManagerService();
+
+//     res.status(200).json({
+
+//       status: "success",
+//       message: "Complaint reminders sent to managers successfully",
+//     });
+//   }); 

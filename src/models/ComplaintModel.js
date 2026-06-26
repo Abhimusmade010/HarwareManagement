@@ -125,6 +125,23 @@ const complaintSchema = new mongoose.Schema(
         type: String
       }
     ],
+    seenByManager:{
+      type: Boolean,
+      default: false
+    },
+    lastReminderSentAt: {
+      type: Date,
+      default: null
+    },
+
+    seenAt:{
+      type: Date,
+    },
+    reminderCount: {
+      type: Number,
+      default: 0
+    },
+
 
     
     notes: [noteSchema],
@@ -149,6 +166,13 @@ complaintSchema.index({ category: 1 });
 complaintSchema.index({
   assignedTo: 1,
   status: 1
+});
+
+// index for reminder job to find complaints that have not been seen by the manager and have not been reminded yet
+complaintSchema.index({
+    seenByManager: 1,
+    reminderCount: 1,
+    createdAt: 1
 });
 
 complaintSchema.index({
