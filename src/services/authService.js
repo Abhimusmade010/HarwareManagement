@@ -1,16 +1,22 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import AppError from "../utils/AppError.js";
 import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { welcomeEmail,welcomeMaintenanceEmail } from "../utils/emailTemplates/welcomeEmail.js";
-// Normalize email to lowercase and trim spaces
+
 const normalizeEmail = (email) => email.trim().toLowerCase();
 
 const registerUser = async (data) => {
+    //object destructuring to get the fields from data
+
     const { Name, Email, Password } = data;
 
+    // This is one of those small-looking lines that solve real production problems.
+    // normalizing the email ensures that users can't create multiple accounts with the same email but different cases or leading/trailing spaces. This is a common source of bugs in user authentication systems.
+    
     const normalizedEmail = normalizeEmail(Email);
 
     const existingUser = await User.findOne({
@@ -79,13 +85,15 @@ const logUser = async (data) => {
     const user = await User.findOne({ Email: normalizedEmail });
     // Use generic error message for both not found and wrong password
     if (!user) {
-        throw new Error("Invalid credentials");
+        // throw new Error("Invalid credentials");
+        throw new AppError("Invalid credentials", 401);
     }
 
     // Compare password
     const isMatch = await bcrypt.compare(Password, user.Password);
     if (!isMatch) {
-        throw new Error("Invalid credentials");
+        // throw new Error("Invalid credentials");
+        throw new AppError("Invalid credentials", 401);
     }
 
     // Generate the token
@@ -127,11 +135,11 @@ const logUser = async (data) => {
 
 const getProfile = async (userId) => {
     if (!userId) {
-        throw new Error("User Id is required");
+        throw new AppError("User Id is required", 400);
     }
     const user = await User.findById(userId).select("-Password");
     if (!user) {
-        throw new Error("User not found");
+        throw new AppError("User not found", 404);
     }
     return user;
 };
@@ -148,9 +156,7 @@ const changePassword = async (userId,data) => {
         await User.findById(userId);
 
     if (!user) {
-        throw new Error(
-            "User not found"
-        );
+        throw new AppError("User not found", 404);
     }
 
     const isMatch =
@@ -160,9 +166,8 @@ const changePassword = async (userId,data) => {
         );
 
     if (!isMatch) {
-        throw new Error(
-            "Current password is incorrect"
-        );
+        throw new  AppError("Current password is incorrect", 400);
+    
     }
 
     const hashedPassword =
@@ -189,7 +194,8 @@ const changePassword = async (userId,data) => {
 const completeProfile = async (userId, data) => {
     const user = await User.findById(userId);
     if (!user) {
-        throw new Error("User not found");
+        // throw new Error("User not found");
+        throw new AppError("User not found", 404);
     }   
 
     // Update the user profile fields

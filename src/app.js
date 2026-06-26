@@ -1,32 +1,51 @@
+// App.js tells about build my application and not run my appplication. It is used to build the application and server.js is used to run the application.
+
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
-dotenv.config();
-
-import connectDB from "./config/db.js";
-connectDB();
-
 import routes from "./routes/index.js";
-import AppError from "./utils/AppError.js";
 import errorMiddleware from "./middleware/errorMiddleware.js";
+import AppError from "./utils/AppError.js";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 
 const app = express();
 
-// Middlewares
+
+// ================Security Middlewares=================
+app.use(helmet());
+
+// =================Cors=================
 app.use(cors({
   origin: process.env.CLIENT_URL || "http://localhost:5173",
   credentials: true
 }));
 
+// =================Body Parser=================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
+// Rate Limiting
 
-// Routes
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,                       // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true,                  
+  legacyHeaders: false,  
+});
+app.use(limiter);
+
+// =================Routes=================
 app.use("/api", routes); 
 
 
+// =================404 Handler=================
+app.use((req, res, next) => {
+  next(new AppError("Not Found", 404));
+});
+
+// =================Error Handler================= 
 app.use(errorMiddleware);
 
 

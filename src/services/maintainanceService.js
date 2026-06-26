@@ -75,13 +75,19 @@ export const updateComplaintStatus = async (complaintId,status,resolutionDetails
       try{
         if(oldStatus !== newStatus){
               if (complaint.status === "resolved"){
-                await complaintResolvedEmail(complaint);
+                complaintResolvedEmail(complaint).catch(err => {
+                  console.error("Error sending email to user:", err.message)  ;
+                });
               }
               else if (complaint.status === "in-progress") {
-                await complaintInProgressEmail(complaint);
+                complaintInProgressEmail(complaint).catch(err => {
+                  console.error("Error sending email to user:", err.message)  ;
+                });
               } 
               else{
-                await complaintStatusUpdatedEmail(complaint);
+                complaintStatusUpdatedEmail(complaint).catch(err => {
+                  console.error("Error sending email to user:", err.message)  ;
+                });
               }     
         }
        
@@ -100,14 +106,37 @@ export const updateComplaintStatus = async (complaintId,status,resolutionDetails
 
 export const escalateComplaint = async (complaintId) => {
 
-    return await Complaint.findByIdAndUpdate(
-        complaintId,
-        { 
-            status: 'escalated', 
-            escalated: true,
-            priority: 'Critical',
-            updatedAt: Date.now() 
-        },
-        { new: true }
-    );
+    const complaint = await Complaint.findById(complaintId);
+    const userId= complaint.assignedTo;
+    
+    const user = await User.findById(userId);
+    const maintenanceEmail = user.Email; // Assuming the User model has an Email field
+
+    if (!complaint) {
+      return null;
+    }
+    complaint.status = 'escalated';
+    complaint.escalated = true;
+    complaint.priority = 'Critical';
+    complaint.updatedAt = Date.now(); 
+
+    complaint.statusHistory.push({
+      oldStatus: complaint.status,
+      newStatus: 'escalated',
+      changedBy: maintenanceEmail, // You can set this to the user ID of the person escalating the complaint if available
+      remarks: 'Complaint escalated due to critical issue'
+    });
+
+    await complaint.save();
+    return complaint;
+    // return await Complaint.findByIdAndUpdate(
+    //     complaintId,
+    //     { 
+    //         status: 'escalated', 
+    //         escalated: true,
+    //         priority: 'Critical',
+    //         updatedAt: Date.now() 
+    //     },
+    //     { new: true }
+    // );
 };

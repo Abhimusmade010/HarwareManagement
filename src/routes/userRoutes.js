@@ -23,8 +23,9 @@ router.use(protect);
 router.patch("/complete-profile", validate(profileSchema), changeProfile);
 router.get("/me", getMe);
 
-// Profile routes
-// this can be used common to all users to change their password 
+// Profile routes do not require role-based restrictions, as they are accessible to all authenticated users.
+// this can be used common to all users to change their password
+
 router.patch("/change-password",protect,validate(changePasswordSchema),changePassword);
 
 // now forget password route 

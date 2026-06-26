@@ -1,30 +1,49 @@
-const errorMiddleware = (err, req, res, next) => {
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || 'error';
 
-  if (process.env.NODE_ENV === 'development') {
-    res.status(err.statusCode).json({
+
+// export default errorMiddleware;
+const errorMiddleware = (err, req, res, next) => {
+
+  // If no status code is present, assume Internal Server Error
+  if (!err.statusCode) {
+    err.statusCode = 500;
+  }
+
+  // If no status is present, assume "error"
+  if (!err.status) {
+    err.status = "error";
+  }
+
+  // Development Environment
+  if (process.env.NODE_ENV === "development") {
+
+    return res.status(err.statusCode).json({
       status: err.status,
-      error: err,
       message: err.message,
+      error: err,
       stack: err.stack,
     });
-  } else {
-    // Production: Don't leak stack traces
-    if (err.isOperational) {
-      res.status(err.statusCode).json({
-        status: err.status,
-        message: err.message,
-      });
-    } else {
-      // Programming or other unknown error: don't leak error details
-      console.error('ERROR 💥', err);
-      res.status(500).json({
-        status: 'error',
-        message: 'Something went very wrong!',
-      });
-    }
+
   }
+
+  // Production Environment
+  if (err.isOperational) {
+
+    // Send expected errors to the client
+    return res.status(err.statusCode).json({
+      status: err.status,
+      message: err.message,
+    });
+
+  }
+
+  // Unexpected error (Programming Bug)
+
+  console.error("Unexpected Error:", err);
+
+  return res.status(500).json({
+    status: "error",
+    message: "Something went wrong. Please try again later.",
+  });
 };
 
 export default errorMiddleware;

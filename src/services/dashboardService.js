@@ -1,6 +1,6 @@
 import Complaint from "../models/complaintModel.js";
 import ExcelJS from "exceljs";
-
+import AppError from "../utils/AppError.js";
 const getDashboardStatisticss = async (user) => {
 
     let filter = {};
@@ -55,7 +55,7 @@ const getDashboardStatisticss = async (user) => {
     escalatedCount,
   };
 };
-
+ 
 const getDepartmentStatistics = async (user) => {
 
   let matchStage = {};

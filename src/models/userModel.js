@@ -42,10 +42,8 @@ const userSchema = new mongoose.Schema({
 
     // User specific
     CabinNo: String,
-    Department: String,
 
-    // Maintenance specific
-    // Specialization: String,
+    Department: String,
 
     // this is only for maintenance users, so we can use enum to restrict the values
     Specialization: {
@@ -59,9 +57,12 @@ const userSchema = new mongoose.Schema({
     // Admin specific
     Designation: String
 
-}, { timestamps: true });
+}, 
+{ timestamps: true }
+);
 
 
 
 const User = mongoose.model('User', userSchema);
 export default User;
+
