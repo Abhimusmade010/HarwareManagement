@@ -34,9 +34,10 @@ export const submitForm = catchAsync(async (req, res, next) => {
   console.log("Received complaint submission:", req.body);
   console.log("Received file:", req.file);
   const userId = req.user._id;
-  const image = req.file;
+  const media  = req.file;
   
-  const complaint = await ComplaintService.submitComplaints(req.body,image,userId);
+  
+  const complaint = await ComplaintService.submitComplaints(req.body,media,userId);
 
   res.status(201).json({
     status: 'success',

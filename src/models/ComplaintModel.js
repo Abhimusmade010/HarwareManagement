@@ -120,11 +120,21 @@ const complaintSchema = new mongoose.Schema(
 
     resolutionDetails: String,
 
-    attachments: [
-      {
-        type: String
-      }
-    ],
+    // attachments: [
+    //   {
+    //     type: String
+    //   }
+    // ],
+    attachment: {
+        key: String,
+        type: {
+            type: String,
+            enum: ["image", "video"]
+        },
+        mimeType: String,
+        originalName: String,
+        size: Number
+    },
     seenByManager:{
       type: Boolean,
       default: false
