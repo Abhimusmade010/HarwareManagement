@@ -9,6 +9,7 @@ export const getDepartmentReport = catchAsync(async (req, res, next) => {
     });
 });
 
+
 export const getUserReport = catchAsync(async (req, res, next) => {
     const userId = req.user._id;
     const report = await ReportService.getUserActivityReport(userId);

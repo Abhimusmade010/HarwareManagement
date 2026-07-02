@@ -14,16 +14,11 @@ const startServer = async () => {
         app.listen(PORT,()=>{
             console.log(`Server listening on the port ${PORT}`);
         });
-
-
-
     }
     catch(error){
         console.error("Error starting the server:", error.message);
         process.exit(1);
-
     }
-
 };
 
 startServer();
