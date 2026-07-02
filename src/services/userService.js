@@ -9,6 +9,7 @@ dotenv.config();
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {reminderEmail} from "../utils/emailTemplates/reminderEmail.js";
 import escalationEmail from "../utils/emailTemplates/escalationEmail.js";
+import Review from "../models/review.js";
 
 // import { S3Client,  } from "@aws-sdk/client-s3";
 
@@ -478,3 +479,32 @@ export const sendComplaintReminderToManagerService = async () => {
         }
     }
 }
+
+export const submitReviewService = async (userId, complaintId, data) => {
+    // Check if complaint is resolved or closed
+    const complaint = await Complaint.findById(complaintId);
+    if (!complaint) throw new AppError('Complaint not found', 404);
+    if (complaint.status !== 'resolved' && complaint.status !== 'closed') {
+        throw new AppError('Can only review resolved or closed complaints', 400);
+    }
+
+    // Check if review already exists
+    const existingReview = await Review.findOne({ complaintId });
+    if (existingReview) {
+        throw new AppError('Review already submitted for this complaint', 400);
+    }
+
+    const review = await Review.create({
+        userID: userId,
+        complaintId,
+        ratings: data.ratings,
+        feedback: data.feedback
+    });
+    
+    return review;
+};
+
+export const getReviewService = async (complaintId) => {
+    const review = await Review.findOne({ complaintId }).populate('userID', 'Name Email');
+    return review;
+};

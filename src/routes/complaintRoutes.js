@@ -35,6 +35,9 @@ router.get("/top-categories", ComplaintController.topComplaintCategories);
 router.get("/:id", ComplaintController.fetchoneComplaint);
 router.post("/:id/notes", ComplaintController.NoteToComplaint);
 
+router.post("/:id/reviews", ComplaintController.reviewController);
+router.get("/:id/reviews", ComplaintController.getReviewController);
+
 
 
 
