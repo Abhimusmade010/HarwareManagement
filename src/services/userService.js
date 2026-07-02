@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {reminderEmail} from "../utils/emailTemplates/reminderEmail.js";
+import escalationEmail from "../utils/emailTemplates/escalationEmail.js";
 
 // import { S3Client,  } from "@aws-sdk/client-s3";
 
@@ -137,7 +138,6 @@ export const submitComplaints = async (data, media,userId) => {
     return newComplaint;
 };
 
-
 export const fetchone = async (complaintId, user) => {
     let filter = { _id: complaintId };
 
@@ -184,25 +184,6 @@ export const fetchone = async (complaintId, user) => {
     //         })
     //     );
     // }
-    if(complaint.attachment && complaint.attachment.key){
-        const command =new GetObjectCommand({
-            Bucket: bucketName,
-            Key: complaint.attachment.key
-        });
-        console.log("GetObjectCommand: is", command);
-        console.log("key is ", complaint.attachment.key);
-        const url = await getSignedUrl(
-            s3,
-            command,
-            { expiresIn: 3600 }
-        );
-        complaint.attachment.url = url;
-    // Add the signed URL to the attachment object
-
-    }
-
-    console.log("Signed URL for attachment:", url);
-
     // now as this route is run so user must opened this complaint so we will update the seenByManager field to true if the user is a manager and the complaint is assigned to him/her, so that the manager can see which complaints he/she has already seen and which are new
     if (user.Role === "maintainance" && complaint.assignedTo.toString() === user._id.toString()) {
         complaint.seenByManager = true;
@@ -211,12 +192,27 @@ export const fetchone = async (complaintId, user) => {
     }
     // but if not seen for more than 48 hours then we wull send the remainder to the manager to seee the complaint 
 
+    const complaintData = complaint.toObject();
 
+    if(complaintData.attachment && complaintData.attachment.key){
+        const command =new GetObjectCommand({
+            Bucket: bucketName,
+            Key: complaintData.attachment.key
+        });
+        console.log("GetObjectCommand: is", command);
+        console.log("key is ", complaintData.attachment.key);
+        const url = await getSignedUrl(
+            s3,
+            command,
+            { expiresIn: 3600 }
+        );
+        complaintData.attachment.url = url;
+    // Add the signed URL to the attachment object
 
-    return complaint;
+    }
+
+    return complaintData;
 };
-
-
 
 export const fetchAllComplaints = async (user, page = 1, limit = 10, search = "", status = "all", category = "all") => {
     let filter = {};
@@ -292,7 +288,6 @@ export const fetchAllComplaints = async (user, page = 1, limit = 10, search = ""
         }
     };
 };
-
 
 export const addNoteToComplaint = async (user, complaintId, message) => {
     let filter = { _id: complaintId };
@@ -395,7 +390,6 @@ export const topCategories = async (userId) => {
   return stats;
 };
 
-
 // Reminder system
 // Once assigned, if the manager doesn't open the complaint
 // within 48 hours, reminder emails are sent.
@@ -428,8 +422,8 @@ export const sendComplaintReminderToManagerService = async () => {
 
 
     for (const complaint of complaintsToRemind) {
-    try {
-        await reminderEmail(complaint, complaint.assignedTo);
+        try {
+            await reminderEmail(complaint, complaint.assignedTo);
 
             complaint.reminderCount += 1;
             // update the lastReminderSentAt field to the current date and time
@@ -445,6 +439,42 @@ export const sendComplaintReminderToManagerService = async () => {
         }
     }
 
+    // Complaints to escalate (reminderCount >= 3 and 48 hours passed since last reminder)
+    const complaintsToEscalate = await Complaint.find({
+        assignedTo: { $ne: null },
+        seenByManager: false,
+        reminderCount: { $gte: reminderCountLimit },
+        escalated: false, // Ensure we don't repeatedly escalate
+        lastReminderSentAt: { $lte: fortyEightHoursAgo }
+    });
 
-    
+    if (complaintsToEscalate.length > 0) {
+        const admins = await User.find({ Role: 'admin' }).select("Email");
+        const adminEmails = admins.map(admin => admin.Email);
+
+        for (const complaint of complaintsToEscalate) {
+            try {
+                const oldStatus = complaint.status;
+                complaint.status = 'escalated';
+                complaint.escalated = true;
+                complaint.priority = 'Critical';
+                
+                complaint.statusHistory.push({
+                    oldStatus: oldStatus,
+                    newStatus: 'escalated',
+                    changedBy: null, // System escalated
+                    remarks: 'Auto-escalated due to unresponsiveness'
+                });
+
+                await complaint.save();
+                
+                // Notify Admins
+                for (const email of adminEmails) {
+                    await escalationEmail(complaint, email).catch(err => console.error("Error sending escalation email:", err));
+                }
+            } catch(err) {
+                console.error(`Error escalating complaint ${complaint._id}:`, err);
+            }
+        }
+    }
 }
