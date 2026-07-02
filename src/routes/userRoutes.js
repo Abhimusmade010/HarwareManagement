@@ -5,7 +5,7 @@ import validate from "../middleware/validations.js";
 import { signUpSchema, loginSchema } from "../validations/uservalidations.js";
 import { changePasswordSchema } from "../validations/uservalidations.js";
 import { changePassword } from "../controllers/maintainanceController.js";
-
+import { reviewController } from "../controllers/complaintscontroller.js";
 const router = express.Router();
 import sendEmail from "../utils/sendEmail.js";
 import { profileSchema } from "../validations/uservalidations.js";
@@ -19,6 +19,11 @@ router.post("/login", validate(loginSchema), loginUser);
 
 
 router.use(protect);
+
+
+// review route for rating and feedback
+// router.post("/review",reviewController);
+
 
 router.patch("/complete-profile", validate(profileSchema), changeProfile);
 router.get("/me", getMe);

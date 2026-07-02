@@ -8,6 +8,8 @@ import dotenv from "dotenv";
 dotenv.config();
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {reminderEmail} from "../utils/emailTemplates/reminderEmail.js";
+import escalationEmail from "../utils/emailTemplates/escalationEmail.js";
+import Review from "../models/review.js";
 
 // import { S3Client,  } from "@aws-sdk/client-s3";
 
@@ -21,11 +23,11 @@ const s3 = new S3Client({
   }
 });
 
-export const submitComplaints = async (data, image,userId) => {
+export const submitComplaints = async (data, media,userId) => {
 
   const { assetId, description, category, priority } = data;
 
-    console.log("Image Data received in submitComplaints:", image);
+    console.log("Media Data received in submitComplaints:", media);
     // this will contain image buffer,original file name,mimetype,encoding and size of the file
     // you can use this data to store the image in your database or cloud storage like AWS S3
     // for now we will just log the image data to the console
@@ -55,31 +57,45 @@ export const submitComplaints = async (data, image,userId) => {
     // await s3.send(command);
 
 
-    let attachments = [];
+    // let attachments = [];
+    let attachment = null;
 
     // if aws s3 goes down or image upload fails for some reason, we still want to create the complaint without the image, so we will wrap the image upload in a try catch block and if it fails, we will just log the error and continue with the complaint creation without the image
     try{
-         if(image){
-            const key = `complaints/${Date.now()}-${image.originalname}`;
+         if(media){
+            const key = `complaints/${Date.now()}-${media.originalname}`;
 
             await s3.send(new PutObjectCommand({
                 Bucket: bucketName,
                 Key: key,
-                Body: image.buffer,
-                ContentType: image.mimetype
+                Body: media.buffer,
+                ContentType: media.mimetype
             }));
+            const type=media.mimetype.startsWith("video/")?"video":"image";
 
-            attachments.push(key);
+
+            // attachments.push(key);
+            
+            attachment={
+                key,
+                type: type,
+                mimeType: media.mimetype,
+                originalName: media.originalname,
+                size: media.size
+            }
+            // const complaint = newComplaint;
+            
         }
 
     }catch(err){
         console.error("Image upload failed:", err.message);
     }
    
-
+    console.log(attachment);
     // const imageUrl =`https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
     // console.log("Image uploaded to S3 with URL:", imageUrl);
 
+    
 
     const newComplaint = await Complaint.create({
         assetId: Number(assetId),
@@ -88,7 +104,7 @@ export const submitComplaints = async (data, image,userId) => {
         category: category,
         assignedTo: manager._id,
         priority: priority || "Medium",
-        attachments: attachments, // Store the S3 URL of the uploaded image
+        attachment: attachment, // Store the S3 URL of the uploaded image
 
         status:"assigned",
 
@@ -121,6 +137,82 @@ export const submitComplaints = async (data, image,userId) => {
     // Send email to the assigned manager
 
     return newComplaint;
+};
+
+export const fetchone = async (complaintId, user) => {
+    let filter = { _id: complaintId };
+
+    if (user.Role === "maintainance") {
+        filter.assignedTo = user._id;
+    } else if (user.Role === "user") {
+        filter.userId = user._id;
+    }
+
+
+    const complaint = await Complaint.findOne(filter);
+
+    // const client = new S3Client(clientParams);
+    // const getObjectParams = {
+    //     Bucket: bucketName,
+    //     Key:complaint.attachments[0] 
+    // };
+    // const command = new GetObjectCommand(getObjectParams);
+    // const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+
+    //feteching only one complaint
+    
+    // complaint.attachments = complaint.attachments.map(attachment => {
+    //         return url; // Replace with the signed URL for each attachment
+    // });
+
+
+    console.log("Fetched complaint:", complaint);
+    // if (complaint.attachment.length > 0) {
+    //     complaint.attachment = await Promise.all(
+
+    //         complaint.attachment.map(async (key) => {
+
+    //             const command = new GetObjectCommand({
+    //                 Bucket: bucketName,
+    //                 Key: key
+    //             });
+
+    //             return await getSignedUrl(
+    //                 s3,
+    //                 command,
+    //                 { expiresIn: 3600 }
+    //             );
+    //         })
+    //     );
+    // }
+    // now as this route is run so user must opened this complaint so we will update the seenByManager field to true if the user is a manager and the complaint is assigned to him/her, so that the manager can see which complaints he/she has already seen and which are new
+    if (user.Role === "maintainance" && complaint.assignedTo.toString() === user._id.toString()) {
+        complaint.seenByManager = true;
+        complaint.seenAt = new Date();
+        await complaint.save();
+    }
+    // but if not seen for more than 48 hours then we wull send the remainder to the manager to seee the complaint 
+
+    const complaintData = complaint.toObject();
+
+    if(complaintData.attachment && complaintData.attachment.key){
+        const command =new GetObjectCommand({
+            Bucket: bucketName,
+            Key: complaintData.attachment.key
+        });
+        console.log("GetObjectCommand: is", command);
+        console.log("key is ", complaintData.attachment.key);
+        const url = await getSignedUrl(
+            s3,
+            command,
+            { expiresIn: 3600 }
+        );
+        complaintData.attachment.url = url;
+    // Add the signed URL to the attachment object
+
+    }
+
+    return complaintData;
 };
 
 export const fetchAllComplaints = async (user, page = 1, limit = 10, search = "", status = "all", category = "all") => {
@@ -196,65 +288,6 @@ export const fetchAllComplaints = async (user, page = 1, limit = 10, search = ""
             limit
         }
     };
-};
-
-export const fetchone = async (complaintId, user) => {
-    let filter = { _id: complaintId };
-
-    if (user.Role === "maintainance") {
-        filter.assignedTo = user._id;
-    } else if (user.Role === "user") {
-        filter.userId = user._id;
-    }
-
-
-    const complaint = await Complaint.findOne(filter);
-
-    // const client = new S3Client(clientParams);
-    // const getObjectParams = {
-    //     Bucket: bucketName,
-    //     Key:complaint.attachments[0] 
-    // };
-    // const command = new GetObjectCommand(getObjectParams);
-    // const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
-
-    //feteching only one complaint
-    
-    // complaint.attachments = complaint.attachments.map(attachment => {
-    //         return url; // Replace with the signed URL for each attachment
-    // });
-
-
-    
-    if (complaint.attachments.length > 0) {
-        complaint.attachments = await Promise.all(
-            complaint.attachments.map(async (key) => {
-
-                const command = new GetObjectCommand({
-                    Bucket: bucketName,
-                    Key: key
-                });
-
-                return await getSignedUrl(
-                    s3,
-                    command,
-                    { expiresIn: 3600 }
-                );
-            })
-        );
-    }
-
-    // now as this route is run so user must opened this complaint so we will update the seenByManager field to true if the user is a manager and the complaint is assigned to him/her, so that the manager can see which complaints he/she has already seen and which are new
-    if (user.Role === "maintainance" && complaint.assignedTo.toString() === user._id.toString()) {
-        complaint.seenByManager = true;
-        complaint.seenAt = new Date();
-        await complaint.save();
-    }
-    // but if not seen for more than 48 hours then we wull send the remainder to the manager to seee the complaint 
-
-
-
-    return complaint;
 };
 
 export const addNoteToComplaint = async (user, complaintId, message) => {
@@ -358,7 +391,6 @@ export const topCategories = async (userId) => {
   return stats;
 };
 
-
 // Reminder system
 // Once assigned, if the manager doesn't open the complaint
 // within 48 hours, reminder emails are sent.
@@ -391,8 +423,8 @@ export const sendComplaintReminderToManagerService = async () => {
 
 
     for (const complaint of complaintsToRemind) {
-    try {
-        await reminderEmail(complaint, complaint.assignedTo);
+        try {
+            await reminderEmail(complaint, complaint.assignedTo);
 
             complaint.reminderCount += 1;
             // update the lastReminderSentAt field to the current date and time
@@ -408,6 +440,71 @@ export const sendComplaintReminderToManagerService = async () => {
         }
     }
 
+    // Complaints to escalate (reminderCount >= 3 and 48 hours passed since last reminder)
+    const complaintsToEscalate = await Complaint.find({
+        assignedTo: { $ne: null },
+        seenByManager: false,
+        reminderCount: { $gte: reminderCountLimit },
+        escalated: false, // Ensure we don't repeatedly escalate
+        lastReminderSentAt: { $lte: fortyEightHoursAgo }
+    });
 
-    
+    if (complaintsToEscalate.length > 0) {
+        const admins = await User.find({ Role: 'admin' }).select("Email");
+        const adminEmails = admins.map(admin => admin.Email);
+
+        for (const complaint of complaintsToEscalate) {
+            try {
+                const oldStatus = complaint.status;
+                complaint.status = 'escalated';
+                complaint.escalated = true;
+                complaint.priority = 'Critical';
+                
+                complaint.statusHistory.push({
+                    oldStatus: oldStatus,
+                    newStatus: 'escalated',
+                    changedBy: null, // System escalated
+                    remarks: 'Auto-escalated due to unresponsiveness'
+                });
+
+                await complaint.save();
+                
+                // Notify Admins
+                for (const email of adminEmails) {
+                    await escalationEmail(complaint, email).catch(err => console.error("Error sending escalation email:", err));
+                }
+            } catch(err) {
+                console.error(`Error escalating complaint ${complaint._id}:`, err);
+            }
+        }
+    }
 }
+
+export const submitReviewService = async (userId, complaintId, data) => {
+    // Check if complaint is resolved or closed
+    const complaint = await Complaint.findById(complaintId);
+    if (!complaint) throw new AppError('Complaint not found', 404);
+    if (complaint.status !== 'resolved' && complaint.status !== 'closed') {
+        throw new AppError('Can only review resolved or closed complaints', 400);
+    }
+
+    // Check if review already exists
+    const existingReview = await Review.findOne({ complaintId });
+    if (existingReview) {
+        throw new AppError('Review already submitted for this complaint', 400);
+    }
+
+    const review = await Review.create({
+        userID: userId,
+        complaintId,
+        ratings: data.ratings,
+        feedback: data.feedback
+    });
+    
+    return review;
+};
+
+export const getReviewService = async (complaintId) => {
+    const review = await Review.findOne({ complaintId }).populate('userID', 'Name Email');
+    return review;
+};

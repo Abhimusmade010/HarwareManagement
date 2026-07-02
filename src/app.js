@@ -11,6 +11,7 @@ import helmet from "helmet";
 const app = express();
 
 // ================Security Middlewares=================
+// helmet helps secure your Express apps by setting various HTTP headers
 app.use(helmet());
 
 // =================Cors=================
@@ -21,9 +22,13 @@ app.use(cors({
 
 // =================Body Parser=================
 app.use(express.json());
+// this is for parsing application/x-www-form-urlencoded means data sent from forms, and it will be available in req.body
 app.use(express.urlencoded({ extended: true }));
 
 // Rate Limiting
+
+
+// Rate Limiting-this is for preventing brute force attacks and denial of service attacks, it limits the number of requests from a single IP address in a given time window
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,                       // Limit each IP to 100 requests per `window` (here, per 15 minutes)
