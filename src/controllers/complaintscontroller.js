@@ -34,9 +34,10 @@ export const submitForm = catchAsync(async (req, res, next) => {
   console.log("Received complaint submission:", req.body);
   console.log("Received file:", req.file);
   const userId = req.user._id;
-  const image = req.file;
+  const media  = req.file;
   
-  const complaint = await ComplaintService.submitComplaints(req.body,image,userId);
+  
+  const complaint = await ComplaintService.submitComplaints(req.body,media,userId);
 
   res.status(201).json({
     status: 'success',
@@ -130,14 +131,27 @@ export const escalateComplaint = catchAsync(async (req, res, next) => {
 });
 
 
-// export const sendCOmplaintReminderToManager
-//   = catchAsync(async (req, res, next) => {  
 
-//     await ComplaintService.sendComplaintReminderToManagerService();
+export const reviewController = catchAsync(async (req, res, next) => {
+    const data = req.body;
+    const userId = req.user._id;
+    const complaintId = req.params.id;
 
-//     res.status(200).json({
+    const review = await ComplaintService.submitReviewService(userId, complaintId, data);
 
-//       status: "success",
-//       message: "Complaint reminders sent to managers successfully",
-//     });
-//   }); 
+    res.status(201).json({
+      status: "success",
+      message: 'Reviewed!!',
+      data: { review }
+    });
+});
+
+export const getReviewController = catchAsync(async (req, res, next) => {
+    const complaintId = req.params.id;
+    const review = await ComplaintService.getReviewService(complaintId);
+
+    res.status(200).json({
+      status: "success",
+      data: { review }
+    });
+});

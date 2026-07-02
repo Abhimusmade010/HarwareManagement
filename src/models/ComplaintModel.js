@@ -120,11 +120,21 @@ const complaintSchema = new mongoose.Schema(
 
     resolutionDetails: String,
 
-    attachments: [
-      {
-        type: String
-      }
-    ],
+    // attachments: [
+    //   {
+    //     type: String
+    //   }
+    // ],
+    attachment: {
+        key: String,
+        type: {
+            type: String,
+            enum: ["image", "video"]
+        },
+        mimeType: String,
+        originalName: String,
+        size: Number
+    },
     seenByManager:{
       type: Boolean,
       default: false
@@ -142,8 +152,6 @@ const complaintSchema = new mongoose.Schema(
       default: 0
     },
 
-
-    
     notes: [noteSchema],
     statusHistory:[statusHistorySchema],
   },
@@ -155,6 +163,7 @@ const complaintSchema = new mongoose.Schema(
 
 // this is for the dashboard statistics, so we can use this index to improve the performance of queries that filter by userId, assetId, status and assignedTo
 
+
 complaintSchema.index({ userId: 1 });
 
 complaintSchema.index({ assignedTo: 1 });
@@ -163,10 +172,12 @@ complaintSchema.index({ status: 1 });
 
 complaintSchema.index({ category: 1 });
 
+
 complaintSchema.index({
   assignedTo: 1,
   status: 1
 });
+
 
 // index for reminder job to find complaints that have not been seen by the manager and have not been reminded yet
 complaintSchema.index({
@@ -179,7 +190,6 @@ complaintSchema.index({
   userId: 1,
   status: 1
 });
-
 
 const Complaint =mongoose.models.Complaint || mongoose.model("Complaint", complaintSchema);
 

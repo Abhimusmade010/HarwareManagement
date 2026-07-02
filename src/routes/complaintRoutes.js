@@ -20,7 +20,7 @@ const upload = multer({ storage: storage });
 // middleware smust be after validation middleware, so that the file is only uploaded if the validation passes
 
 // but this file uploaod is not mandatory for user ,if user does not upload the file, then also the form should be submitted, so we will use multer's single method to handle the file upload, and if the file is not uploaded, then req.file will be undefined, so we can handle that in the controller
-router.post("/raised-complaint",upload.single("image"),validate(comSchema), ComplaintController.submitForm);
+router.post("/raised-complaint",upload.single("media"),validate(comSchema), ComplaintController.submitForm);
 
 router.get("/my-complaints", ComplaintController.fetchAllComplaint);
 
@@ -34,6 +34,9 @@ router.get("/top-categories", ComplaintController.topComplaintCategories);
 // SHARED ROUTES (User & Admin)
 router.get("/:id", ComplaintController.fetchoneComplaint);
 router.post("/:id/notes", ComplaintController.NoteToComplaint);
+
+router.post("/:id/reviews", ComplaintController.reviewController);
+router.get("/:id/reviews", ComplaintController.getReviewController);
 
 
 
