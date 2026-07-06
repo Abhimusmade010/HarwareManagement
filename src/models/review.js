@@ -15,6 +15,7 @@ const reviewSchema=new mongoose.Schema({
         ref:"Complaint",
         required:true
     },
+
     ratings:{
         type:Number,
         // constraints for ratings, minimum 1 and maximum 5
@@ -22,6 +23,7 @@ const reviewSchema=new mongoose.Schema({
         max:5,
         required:true
     },
+    
     feedback:{
         type:String,
         required:true
@@ -30,6 +32,7 @@ const reviewSchema=new mongoose.Schema({
 },
     {timestamps:true}
 );
+
 const Review = mongoose.models.Review || mongoose.model("Review", reviewSchema);
 
 export default Review;

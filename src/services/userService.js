@@ -98,7 +98,8 @@ export const submitComplaints = async (data, media,userId) => {
     
 
     const newComplaint = await Complaint.create({
-        assetId: Number(assetId),
+        // assetId: Number(assetId),
+        assetId:assetId,
         userId: userId,
         description: description,
         category: category,
