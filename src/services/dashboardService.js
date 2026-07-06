@@ -1,4 +1,4 @@
-import Complaint from "../models/complaintModel.js";
+import Complaint from "../models/ComplaintModel.js";
 import ExcelJS from "exceljs";
 import AppError from "../utils/AppError.js";
 const getDashboardStatisticss = async (user) => {
