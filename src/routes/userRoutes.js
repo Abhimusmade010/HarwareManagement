@@ -10,12 +10,21 @@ const router = express.Router();
 import sendEmail from "../utils/sendEmail.js";
 import { profileSchema } from "../validations/uservalidations.js";
 import { changeProfile } from "../controllers/authController.js";
-
-
-
-
+import { resetPasswordController } from "../controllers/authController.js";
+import {verifyOtpController, forgotPasswordController } from "../controllers/authController.js";
+import {resetPasswordSchema} from "../validations/uservalidations.js";
+import { forgotPasswordSchema } from "../validations/uservalidations.js";
 router.post("/signup", validate(signUpSchema), signUpUser);
 router.post("/login", validate(loginSchema), loginUser);
+
+//password change routes for forgot,verify otp and reset password without current password
+//foirst user will click the forgot password button and then user will enter the email and then we will send the otp to the email and then user will enter the otp and then we will verify the otp and then allow them to change the password without current password
+
+router.post("/forgot-password", validate(forgotPasswordSchema), forgotPasswordController);
+
+router.post("/verify-otp", verifyOtpController);
+
+router.post("/reset-password", validate(resetPasswordSchema), resetPasswordController);
 
 
 router.use(protect);

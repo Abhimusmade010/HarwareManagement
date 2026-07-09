@@ -37,7 +37,6 @@ const userSchema = new mongoose.Schema({
         default: false
     },
 
-
     MobileNo: String,
 
     // User specific
@@ -46,6 +45,7 @@ const userSchema = new mongoose.Schema({
     Department: String,
 
     // this is only for maintenance users, so we can use enum to restrict the values
+    
     Specialization: {
         type: String,
         enum: [
@@ -55,7 +55,24 @@ const userSchema = new mongoose.Schema({
     },
 
     // Admin specific
-    Designation: String
+    Designation: String,
+
+    otp: {
+        type: Number,
+        default: null
+    },
+    otpExpiry: {
+        type: Date,
+        default: null
+    }
+    ,
+    otpVerified: {
+        type: Boolean,
+        default: false
+    }
+    
+
+
 
 }, 
 { timestamps: true }

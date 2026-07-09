@@ -106,6 +106,11 @@ const complaintSchema = new mongoose.Schema(
       default: false
     },
 
+    escalationNote: {
+      type: String,
+      default: ""
+    },
+
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

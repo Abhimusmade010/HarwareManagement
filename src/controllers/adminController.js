@@ -1,7 +1,8 @@
 import { catchAsync } from "../utils/catchAsync.js";
 // export {createMaintenanceUser};
-import { createMaintenanceUser, getMaintenanceEngineersWithStats } from "../services/adminService.js";
+// import { createMaintenanceUser, getMaintenanceEngineersWithStats } from "../services/adminService.js";
 
+import * as AdminService from "../services/adminService.js";
 
 
 const createMaintenanceUserController = async (req, res) => {
@@ -9,7 +10,7 @@ const createMaintenanceUserController = async (req, res) => {
     try {
 
         const data = req.body;
-        const result = await createMaintenanceUser(data);
+        const result = await AdminService.createMaintenanceUser(data);
 
         res.status(200).json({
 
@@ -32,7 +33,7 @@ const createMaintenanceUserController = async (req, res) => {
 };
 
 const getMaintenanceEngineersController = catchAsync(async (req, res) => {
-    const engineers = await getMaintenanceEngineersWithStats();
+    const engineers = await AdminService.getMaintenanceEngineersWithStats();
     
     res.status(200).json({
         success: true,

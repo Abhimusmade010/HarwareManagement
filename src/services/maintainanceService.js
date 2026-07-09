@@ -6,7 +6,7 @@ import { complaintStatusUpdatedEmail } from "../utils/emailTemplates/complaintSt
 
 
 
-export const updateComplaintStatus = async (complaintId,status,resolutionDetails,userId,role) => {
+export const updateComplaintStatus = async (complaintId,status,resolutionDetails,userId,role, escalationNote) => {
 
   
       const complaint = await Complaint.findById(complaintId).populate("userId", "Name Email");
@@ -58,8 +58,12 @@ export const updateComplaintStatus = async (complaintId,status,resolutionDetails
       }
       
       if (newStatus === "escalated") {
+        if (!escalationNote) {
+          throw new AppError("Escalation note is required to explain the issue", 400);
+        }
         complaint.escalated = true;
         complaint.priority = 'Critical';
+        complaint.escalationNote = escalationNote;
       }
 
       complaint.statusHistory.push({

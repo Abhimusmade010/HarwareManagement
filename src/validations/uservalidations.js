@@ -48,6 +48,8 @@ const changePasswordSchema = z.object({
 
 });
 
+
+
 const profileSchema = z.object({
     MobileNo: z.string().regex(/^[0-9]{10}$/, "Mobile number must be 10 digits"),
     CabinNo: z.string().max(100),
@@ -57,6 +59,13 @@ const profileSchema = z.object({
 });
 
 
+const forgotPasswordSchema = z.object({
+    email: z.string().email("Invalid email format")
+}); 
 
+const resetPasswordSchema = z.object({
+    email: z.string().email("Invalid email format"),
+    newPassword: z.string().min(6, "Password must be at least 6 characters")
+});
 
-export { signUpSchema, loginSchema, createMaintenanceSchema, changePasswordSchema, profileSchema };
+export { signUpSchema, loginSchema, createMaintenanceSchema, changePasswordSchema, profileSchema, forgotPasswordSchema,resetPasswordSchema };

@@ -5,6 +5,8 @@ import cors from "cors";
 import routes from "./routes/index.js";
 import errorMiddleware from "./middleware/errorMiddleware.js";
 import AppError from "./utils/AppError.js";
+import dotenv from "dotenv";
+dotenv.config();
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 

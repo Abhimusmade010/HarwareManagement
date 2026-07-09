@@ -1,12 +1,13 @@
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
-import * as ComplaintService from "../services/userService.js";
+import * as ComplaintService from "../services/complaintService.js";
 import * as MaintenanceService from "../services/maintainanceService.js";
 
+import * as awsStorageService from "../services/awsStorageService.js";
 
 export const updateStatus = catchAsync(async (req, res, next) => {
   const { complaintId } = req.params;
-  const { status, resolutionDetails } = req.body;
+  const { status, resolutionDetails, escalationNote } = req.body;
   console.log("req.user:", req.user);
   const complaint =
     await MaintenanceService.updateComplaintStatus(
@@ -14,7 +15,8 @@ export const updateStatus = catchAsync(async (req, res, next) => {
       status,
       resolutionDetails,
       req.user._id,
-      req.user.Role
+      req.user.Role,
+      escalationNote
     );
 
   if (!complaint) {
@@ -37,7 +39,7 @@ export const submitForm = catchAsync(async (req, res, next) => {
   const media  = req.file;
   
   
-  const complaint = await ComplaintService.submitComplaints(req.body,media,userId);
+  const complaint = await awsStorageService.submitComplaints(req.body,media,userId);
 
   res.status(201).json({
     status: 'success',
@@ -64,7 +66,7 @@ export const fetchAllComplaint = catchAsync(async (req, res, next) => {
 
 export const fetchoneComplaint = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const complaint = await ComplaintService.fetchone(id, req.user);
+  const complaint = await awsStorageService.fetchone(id, req.user);
 
   if (!complaint) {
     return next(new AppError('No complaint found with that ID', 404));

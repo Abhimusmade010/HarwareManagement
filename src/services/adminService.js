@@ -11,6 +11,20 @@ const createMaintenanceUser = async (data) => {
 
     const { Name, Email,Specialization } = data;
 
+    //lets find if the manager with this specialization already exists or not
+    const existingEngineer = await User.findOne({
+        Role: "maintainance",
+        Specialization: Specialization
+    });
+    
+    if(existingEngineer){
+        AppError.throwError(
+            `A maintenance engineer with specialization ${Specialization} already exists`,
+            400
+        );
+    }
+
+
     const existingUser =
         await User.findOne({
             Email: Email.toLowerCase()

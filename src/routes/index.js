@@ -18,6 +18,5 @@ router.use("/dashboard", dashboardRoutes);
 
 router.use("/admin", adminRoutes);
 
-
 export default router;
 

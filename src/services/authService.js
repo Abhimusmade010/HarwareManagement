@@ -1,12 +1,13 @@
-import dotenv from "dotenv";
+    import dotenv from "dotenv";
 dotenv.config();
 
 import AppError from "../utils/AppError.js";
 import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { passwordChanged } from "../utils/emailTemplates/passwordChanged.js";
 import { welcomeEmail,welcomeMaintenanceEmail } from "../utils/emailTemplates/welcomeEmail.js";
-
+import {sendOtpforForgotPasssword} from "../utils/emailTemplates/forgotPasswordOtp.js";
 const normalizeEmail = (email) => email.trim().toLowerCase();
 
 const registerUser = async (data) => {
@@ -215,7 +216,138 @@ const completeProfile = async (userId, data) => {
 };
 
 
+//now the service for forgot password will be here, we will first send the otp to the user email and then verify the otp and then allow them to change the password without current password
+const forgotPasswordService=async(email)=>{
+    
+    const user = await User.findOne({ Email: email });
+    console.log("User found in forgotPasswordService:", user);
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
 
-export { registerUser, logUser, getProfile, changePassword, completeProfile };
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000); // Generate a 6-digit OTP
+    user.otp = otp;
+    console.log("Generated OTP:", otp); // Log the generated OTP for debugging purposes
 
+    //send the otp to the user email using the email template
+
+    //send the otp to the user email using the email templated
+    await sendOtpforForgotPasssword(email, otp);
+    console.log("aftet the email is sent "); // Log the success message for debugging purposes
+
+
+    // // Save the OTP to the user document 
+    // //now otp shoulf be saved in the user document and it should be valid for 10 minutes, so we will save the otp and the time when it was generated and then we will check if the otp is valid or not when the user tries to verify it
+    user.otpGeneratedAt = Date.now();
+    await user.save();
+
+    return {
+        message: "OTP sent to email successfully"
+    };
+}
+
+
+const changePasswordWithoutCurrentPassword = async (email, newPassword) => {
+    const user = await User.findOne({ Email: email });
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+    await bcrypt.hash(newPassword, 10).then((hashedPassword) => {
+        user.Password = hashedPassword;
+        user.mustChangePassword = false;
+        user.save();
+    }
+    );
+    //now we will send the email to the user that the password has been changed successfully
+    // await welcomeEmail(user);
+    await passwordChanged(user);
+
+    return {
+        message: "Password changed successfully"
+    };
+}
+
+//return true from here if otp is valid and return false if otp is invalid or expired, we will check the otp and the time when it was generated and then we will check if the otp is valid or not when the user tries to verify it
+const otpVerificationService=async(email,otp)=>{
+    
+    const user = await User.findOne({ Email: email });
+
+
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+
+
+    const otpGeneratedAt = user.otpGeneratedAt;
+    const now = Date.now();
+    const diff = now - otpGeneratedAt;
+    if (diff > 10 * 60 * 1000) {
+        throw new AppError("OTP has expired", 400);
+    }
+
+    //if the otp is invalid or expired then return false
+    
+    if (user.otp !== otp) {
+        throw new AppError("Invalid OTP", 400);
+    }
+
+    user.otpVerified = true;
+    await user.save();
+    
+    //check if the otp is expired or not, we will check if the otp was generated more than 10 minutes ago, if yes then we will return false
+    
+
+    return;
+};
+
+const resetPasswordService = async (email, newPassword) => {
+    
+    const user =await User.findOne({ Email: email });
+
+    console.log("User found in resetPasswordService:", user);
+
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+
+    if(user.otpVerified !== true) {
+        throw new AppError("OTP not verified", 400);
+    }
+    console.log("OTP verified for user:", user);
+
+    // await bcrypt.hash(newPassword, 10).then((hashedPassword) => {
+    //     user.Password = hashedPassword;
         
+    // }
+
+    // );
+
+    // const hasedPassword = await bcrypt.hash(newPassword, 10);
+    const hashPassword = await bcrypt.hash(newPassword, 10);
+
+    user.Password = hashPassword;
+    console.log("Hashed password set for user:", hashPassword);
+
+    console.log("Password reset for user:", user);
+    user.otpVerified = false;
+    user.otp = null;
+    user.otpGeneratedAt = null;
+
+    
+    //now we will send the email to the user that the password has been changed successfully
+    // await welcomeEmail(user);    
+    await passwordChanged(user);
+
+    await user.save();
+
+
+    return {
+        message: "Password changed successfully"
+    };
+}
+
+
+
+export { registerUser, logUser, getProfile, changePassword, completeProfile ,forgotPasswordService,otpVerificationService,resetPasswordService};
+
