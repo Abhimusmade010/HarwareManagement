@@ -5,7 +5,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import dotenv from "dotenv";
 import Complaint from "../models/ComplaintModel.js";
 import User from "../models/userModel.js"
-import AppError from "../utils/appError.js";
+import AppError from "../utils/AppError.js";
 import complaintCreationTemplate from "../utils/emailTemplates/complaintCreation.js";
 const bucketName = process.env.AWS_BUCKET_NAME;
 
