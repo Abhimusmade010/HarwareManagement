@@ -43,16 +43,20 @@ app.use(limiter);
 // =================Routes=================
 app.use("/api", routes); 
 
+//=================Health Check Endpoint=================
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK", message: "Server is healthy" });
+});
+
+
 // =================404 Handler=================
 app.use((req, res, next) => {
   next(new AppError("Not Found", 404));
 });
 
 
-//=================Health Check Endpoint=================
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK", message: "Server is healthy" });
-});
+
 
 // =================Error Handler================= 
 app.use(errorMiddleware);
