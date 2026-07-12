@@ -15,8 +15,7 @@ export const updateStatus = catchAsync(async (req, res, next) => {
       status,
       resolutionDetails,
       req.user._id,
-      req.user.Role,
-      escalationNote
+      req.user.Role
     );
 
   if (!complaint) {
@@ -119,7 +118,8 @@ export const NoteToComplaint = catchAsync(async (req, res, next) => {
 
 export const escalateComplaint = catchAsync(async (req, res, next) => {
     const { id } = req.params;
-    const complaint = await MaintenanceService.escalateComplaint(id);
+    const { escalationNote } = req.body;
+    const complaint = await MaintenanceService.escalateComplaint(id, req.user._id, req.user.Role, escalationNote);
 
     if (!complaint) {
         return next(new AppError('No complaint found with that ID', 404));
@@ -128,6 +128,22 @@ export const escalateComplaint = catchAsync(async (req, res, next) => {
     res.status(200).json({
         status: 'success',
         message: 'Complaint escalated to senior management',
+        data: { complaint }
+    });
+});
+
+export const transferComplaint = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const { newCategory } = req.body;
+    const complaint = await MaintenanceService.transferComplaint(id, newCategory, req.user._id, req.user.Role);
+
+    if (!complaint) {
+        return next(new AppError('No complaint found with that ID', 404));
+    }
+
+    res.status(200).json({
+        status: 'success',
+        message: 'Complaint transferred successfully',
         data: { complaint }
     });
 });
@@ -150,7 +166,8 @@ export const reviewController = catchAsync(async (req, res, next) => {
 
 export const getReviewController = catchAsync(async (req, res, next) => {
     const complaintId = req.params.id;
-    const review = await ComplaintService.getReviewService(complaintId);
+    const userId = req.user._id;
+    const review = await ComplaintService.getReviewService(complaintId, userId);
 
     res.status(200).json({
       status: "success",

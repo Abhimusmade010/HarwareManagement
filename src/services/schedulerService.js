@@ -1,7 +1,7 @@
 
 
-import Complaint from "../models/complaint.js";
-import User from "../models/user.js";
+import Complaint from "../models/ComplaintModel.js";
+import User from "../models/userModel.js";
 import { reminderEmail } from "../utils/emailTemplates/reminderEmail.js";
 import escalationEmail from "../utils/emailTemplates/escalationEmail.js";
 
@@ -55,26 +55,34 @@ export const sendComplaintReminderToManagerService = async () => {
         assignedTo: { $ne: null },
         seenByManager: false,
         reminderCount: { $gte: reminderCountLimit },
-        escalated: false, // Ensure we don't repeatedly escalate
+        status: { $ne: 'Assigned' }, // Prevent repeated auto-escalation check if already assigned to admin
         lastReminderSentAt: { $lte: fortyEightHoursAgo }
     });
 
     if (complaintsToEscalate.length > 0) {
-        const admins = await User.find({ Role: 'admin' }).select("Email");
-        const adminEmails = admins.map(admin => admin.Email);
+        const admin = await User.findOne({ Role: 'admin' });
+        if(!admin) return;
+        const adminEmails = [admin.Email];
 
         for (const complaint of complaintsToEscalate) {
             try {
                 const oldStatus = complaint.status;
-                complaint.status = 'escalated';
-                complaint.escalated = true;
-                complaint.priority = 'Critical';
+                const oldOwner = complaint.assignedTo;
                 
-                complaint.statusHistory.push({
-                    oldStatus: oldStatus,
-                    newStatus: 'escalated',
-                    changedBy: null, // System escalated
-                    remarks: 'Auto-escalated due to unresponsiveness'
+                complaint.status = 'Assigned';
+                complaint.priority = 'Critical';
+                complaint.assignedTo = admin._id;
+                
+                complaint.activityLog.push({
+                    action: "Escalated",
+                    description: "Auto-escalated due to unresponsiveness",
+                    performedBy: oldOwner,
+                    performedByRole: "system",
+                    timestamp: Date.now(),
+                    metadata: {
+                        reason: 'Auto-escalated due to unresponsiveness',
+                        newOwner: admin._id
+                    }
                 });
 
                 await complaint.save();

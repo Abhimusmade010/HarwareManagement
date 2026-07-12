@@ -69,15 +69,20 @@ const userSchema = new mongoose.Schema({
     otpVerified: {
         type: Boolean,
         default: false
-    }
+    },
     
-
-
-
+    totalReviews: {
+        type: Number,
+        default: 0
+    },
+    
+    averageRating: {
+        type: Number,
+        default: 0
+    }
 }, 
 { timestamps: true }
 );
-
 
 
 const User = mongoose.model('User', userSchema);

@@ -17,6 +17,7 @@ import { forgotPasswordSchema } from "../validations/uservalidations.js";
 router.post("/signup", validate(signUpSchema), signUpUser);
 router.post("/login", validate(loginSchema), loginUser);
 
+
 //password change routes for forgot,verify otp and reset password without current password
 //foirst user will click the forgot password button and then user will enter the email and then we will send the otp to the email and then user will enter the otp and then we will verify the otp and then allow them to change the password without current password
 
@@ -25,7 +26,6 @@ router.post("/forgot-password", validate(forgotPasswordSchema), forgotPasswordCo
 router.post("/verify-otp", verifyOtpController);
 
 router.post("/reset-password", validate(resetPasswordSchema), resetPasswordController);
-
 
 router.use(protect);
 
@@ -45,8 +45,6 @@ router.patch("/change-password",protect,validate(changePasswordSchema),changePas
 // now forget password route 
 // when user hit forget password route,first verify with the opt to mail and then allow them to change the password without current password
 // router.post("/forgot-password",protect,forgotPassword);
-
-
 
 
 export default router;

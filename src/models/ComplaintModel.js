@@ -25,38 +25,14 @@ const noteSchema = new mongoose.Schema({
   { _id: false }            
 );
 
-const statusHistorySchema = new mongoose.Schema({
-  oldStatus: {
-    type: String,
-    default: null
-  },
-
-  newStatus: {
-    type: String,
-    required: true
-  },
-
-  changedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    default: null
-  },
-
-  changedAt: {
-    type: Date,
-    default: Date.now
-  },
-
-  remarks: {
-    type: String,
-    default: ""
-  },
-  action: {
-    type: String,
-    default: "status_change"
-  }
-  
-});
+const activityLogSchema = new mongoose.Schema({
+  action: { type: String, required: true },
+  description: { type: String, required: true },
+  performedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  performedByRole: { type: String, required: true },
+  timestamp: { type: Date, default: Date.now },
+  metadata: { type: mongoose.Schema.Types.Mixed }
+}, { _id: false });
 
 const complaintSchema = new mongoose.Schema(
   {
@@ -92,23 +68,13 @@ const complaintSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        "assigned",
-        "in-progress",
-        "resolved",
-        "closed",
-        "escalated"
+        "Open",
+        "Assigned",
+        "In Progress",
+        "Resolved",
+        "Closed"
       ],
-      default: "assigned"
-    },
-
-    escalated: {
-      type: Boolean,
-      default: false
-    },
-
-    escalationNote: {
-      type: String,
-      default: ""
+      default: "Open"
     },
 
     assignedTo: {
@@ -158,7 +124,7 @@ const complaintSchema = new mongoose.Schema(
     },
 
     notes: [noteSchema],
-    statusHistory:[statusHistorySchema],
+    activityLog: [activityLogSchema],
   },
 
   {

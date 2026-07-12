@@ -10,9 +10,9 @@ const reviewSchema=new mongoose.Schema({
         required:true
     },
 
-    complaintId:{
+    managerId:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"Complaint",
+        ref:"User",
         required:true
     },
 

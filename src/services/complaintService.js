@@ -22,8 +22,17 @@ export const fetchAllComplaints = async (user, page = 1, limit = 10, search = ""
         filter.userId = user._id;
     }
 
-    if (status !== "all") {
-        filter.status = status;
+    if (status === "escalated") {
+        filter["activityLog.action"] = "Escalated";
+    } else if (status !== "all") {
+        const statusMap = {
+            "assigned": "Assigned",
+            "in-progress": "In Progress",
+            "resolved": "Resolved",
+            "closed": "Closed",
+            "open": "Open"
+        };
+        filter.status = statusMap[status.toLowerCase()] || { $regex: `^${status}$`, $options: 'i' };
     }
 
     if (category !== "all") {
@@ -50,6 +59,13 @@ export const fetchAllComplaints = async (user, page = 1, limit = 10, search = ""
         .skip(skip)
         .limit(limit)
         .lean();
+
+    complaints.forEach(complaint => {
+        const escalationLog = complaint.activityLog?.slice().reverse().find(log => log.action === "Escalated");
+        if (escalationLog && escalationLog.metadata && escalationLog.metadata.reason) {
+            complaint.escalationNote = escalationLog.metadata.reason;
+        }
+    });
 
     // if(complaints.length === 0 && page > 1){
     //     return {
@@ -163,7 +179,11 @@ export const complaintData = async (user) => {
 
   stats.forEach(item => {
     response.total += item.count;
-    const statusKey = item._id === "in-progress" ? "inProgress" : item._id;
+    let statusKey = item._id;
+    if (statusKey === "In Progress") statusKey = "inProgress";
+    else if (statusKey === "Resolved") statusKey = "resolved";
+    else if (statusKey === "Closed") statusKey = "closed";
+    
     if (response.hasOwnProperty(statusKey)) {
       response[statusKey] = item.count;
     } else {
@@ -186,6 +206,56 @@ export const topCategories = async (userId) => {
   ]);
   return stats;
 };
+
+
+export const submitReviewService = async (userId, complaintId, data) => {
+    // Check if complaint is resolved or closed
+    const complaint = await Complaint.findById(complaintId);
+    if (!complaint) throw new AppError('Complaint not found', 404);
+    if (complaint.status !== 'Resolved' && complaint.status !== 'Closed') {
+        throw new AppError('Can only review resolved or closed complaints', 400);
+    }
+
+    const managerId = complaint.resolvedBy || complaint.assignedTo;
+    if (!managerId) {
+        throw new AppError('No manager assigned to this complaint to review', 400);
+    }
+
+    const review = await Review.create({
+        userID: userId,
+        managerId: managerId,
+        ratings: data.ratings,
+        feedback: data.feedback
+    });
+    
+    // Update manager's stats
+    const manager = await User.findById(managerId);
+    if (manager) {
+        manager.totalReviews = (manager.totalReviews || 0) + 1;
+        const totalRating = ((manager.averageRating || 0) * (manager.totalReviews - 1)) + data.ratings;
+        manager.averageRating = totalRating / manager.totalReviews;
+        await manager.save();
+    }
+    
+    return review;
+};
+
+export const getReviewService = async (complaintId, userId) => {
+    const complaint = await Complaint.findById(complaintId);
+    if (!complaint) return null;
+    
+    const managerId = complaint.resolvedBy || complaint.assignedTo;
+    if (!managerId) return null;
+
+    const review = await Review.findOne({ managerId, userID: userId })
+        .sort({ createdAt: -1 })
+        .populate('userID', 'Name Email');
+        
+    return review;
+};
+
+
+
 
 // Reminder system
 // Once assigned, if the manager doesn't open the complaint
@@ -275,32 +345,3 @@ export const topCategories = async (userId) => {
 //         }
 //     }
 // }
-
-export const submitReviewService = async (userId, complaintId, data) => {
-    // Check if complaint is resolved or closed
-    const complaint = await Complaint.findById(complaintId);
-    if (!complaint) throw new AppError('Complaint not found', 404);
-    if (complaint.status !== 'resolved' && complaint.status !== 'closed') {
-        throw new AppError('Can only review resolved or closed complaints', 400);
-    }
-
-    // Check if review already exists
-    const existingReview = await Review.findOne({ complaintId });
-    if (existingReview) {
-        throw new AppError('Review already submitted for this complaint', 400);
-    }
-
-    const review = await Review.create({
-        userID: userId,
-        complaintId,
-        ratings: data.ratings,
-        feedback: data.feedback
-    });
-    
-    return review;
-};
-
-export const getReviewService = async (complaintId) => {
-    const review = await Review.findOne({ complaintId }).populate('userID', 'Name Email');
-    return review;
-};

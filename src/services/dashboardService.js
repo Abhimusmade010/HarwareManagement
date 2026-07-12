@@ -28,22 +28,22 @@ const getDashboardStatisticss = async (user) => {
 
     Complaint.countDocuments({
       ...filter,
-      status: "assigned",
+      status: "Assigned",
     }),
 
     Complaint.countDocuments({
       ...filter,
-      status: "in-progress",
+      status: "In Progress",
     }),
 
     Complaint.countDocuments({
       ...filter,
-      status: "resolved",
+      status: "Resolved",
     }),
 
     Complaint.countDocuments({
       ...filter,
-      status: "escalated",
+      "activityLog.action": "Escalated",
     }),
   ]);
 
@@ -223,8 +223,17 @@ const downloadSheetService = async (user, queryParams) => {
 
 
   // is user wants to download based on any filter like status, department or category, we will apply those filters as well
-  if (queryParams.status) {
-    filter.status = {
+  if (queryParams.status === "escalated") {
+    filter["activityLog.action"] = "Escalated";
+  } else if (queryParams.status) {
+    const statusMap = {
+        "assigned": "Assigned",
+        "in-progress": "In Progress",
+        "resolved": "Resolved",
+        "closed": "Closed",
+        "open": "Open"
+    };
+    filter.status = statusMap[queryParams.status.toLowerCase()] || {
       $regex: `^${queryParams.status}$`,
       $options: "i",
     };

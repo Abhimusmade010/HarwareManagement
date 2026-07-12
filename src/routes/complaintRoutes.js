@@ -47,6 +47,7 @@ router.patch("/:complaintId/status", ComplaintController.updateStatus);
 
 // router.use(restrictTo("admin", "maintainance"));
 router.patch("/:id/escalate", ComplaintController.escalateComplaint);
+router.patch("/:id/transfer", ComplaintController.transferComplaint);
 
 
 

@@ -1,17 +1,11 @@
 // take the application and run it ->is the use of server.js file
 
-
-
 import dotenv from "dotenv";
 dotenv.config();
-
-
 import app from "./app.js";
 
 import connectDB from "./config/db.js";
-
 const PORT=process.env.PORT || 3000;
-
 
 const startServer = async () => {   
     try{
@@ -28,4 +22,5 @@ const startServer = async () => {
 };
 
 startServer();
+
 

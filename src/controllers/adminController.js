@@ -42,4 +42,13 @@ const getMaintenanceEngineersController = catchAsync(async (req, res) => {
     });
 });
 
-export { createMaintenanceUserController, getMaintenanceEngineersController };
+const getManagerReviewsController = catchAsync(async (req, res) => {
+    const managerId = req.params.managerId;
+    const reviews = await AdminService.getManagerReviews(managerId);
+    res.status(200).json({
+        success: true,
+        data: reviews,
+    });
+});
+
+export { createMaintenanceUserController, getMaintenanceEngineersController, getManagerReviewsController };

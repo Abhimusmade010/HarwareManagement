@@ -80,9 +80,8 @@ const getMaintenanceEngineersWithStats = async () => {
         let total = 0, pending = 0, resolved = 0, inProgress = 0, escalated = 0;
         stats.forEach(s => {
             total += s.count;
-            if (s._id === "resolved" || s._id === "closed") resolved += s.count;
-            else if (s._id === "in-progress") inProgress += s.count;
-            else if (s._id === "escalated") escalated += s.count;
+            if (s._id === "Resolved" || s._id === "Closed") resolved += s.count;
+            else if (s._id === "In Progress") inProgress += s.count;
             else pending += s.count;
         });
         
@@ -95,4 +94,13 @@ const getMaintenanceEngineersWithStats = async () => {
     return engineerStats;
 };
 
-export { createMaintenanceUser, getMaintenanceEngineersWithStats };
+import Review from "../models/review.js";
+
+const getManagerReviews = async (managerId) => {
+    const reviews = await Review.find({ managerId })
+        .populate("userID", "Name Email")
+        .sort({ createdAt: -1 });
+    return reviews;
+};
+
+export { createMaintenanceUser, getMaintenanceEngineersWithStats, getManagerReviews };

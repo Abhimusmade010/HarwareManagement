@@ -30,10 +30,11 @@ app.use(express.urlencoded({ extended: true }));
 // Rate Limiting
 
 
+// https 
 // Rate Limiting-this is for preventing brute force attacks and denial of service attacks, it limits the number of requests from a single IP address in a given time window
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,                       // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  max: process.env.NODE_ENV === "production" ? 100 : 2000, // Higher limit during development
   standardHeaders: true,                  
   legacyHeaders: false,  
 });
@@ -51,3 +52,5 @@ app.use((req, res, next) => {
 app.use(errorMiddleware);
 
 export default app;
+
+// hhtps allowed 
