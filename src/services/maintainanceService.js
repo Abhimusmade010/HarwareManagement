@@ -30,14 +30,18 @@ export const updateComplaintStatus = async (complaintId,status,resolutionDetails
         );
       }
 
-      //check for valid status transition
-      if (complaint.status === newStatus) {
-        throw new AppError(
-          `Complaint is already ${newStatus}`,
-          400
-        );
-      }
+  
+      // if (complaint.status === newStatus) {
+      //   throw new AppError(
+      //     `Complaint is already ${newStatus}`,
+      //     400
+      //   );
+      // }
 
+      //check for valid status transition
+      if(oldStatus === newStatus) {
+          throw new AppError(`Complaint is already in ${newStatus} status`, 400);
+      }
       complaint.status = newStatus;
 
       complaint.updatedAt = Date.now();
