@@ -197,22 +197,27 @@ export const fetchone = async (complaintId, user) => {
     const complaintData = complaint.toObject();
 
     if(complaintData.attachment && complaintData.attachment.key){
-        const command =new GetObjectCommand({
-            Bucket: bucketName,
-            Key: complaintData.attachment.key
-        });
-        console.log("GetObjectCommand: is", command);
-        console.log("key is ", complaintData.attachment.key);
-        const url = await getSignedUrl(
-            s3,
-            command,
-            { expiresIn: 3600 }
-        );
-        complaintData.attachment.url = url;
+        try{
+          const command =new GetObjectCommand({
+              Bucket: bucketName,
+              Key: complaintData.attachment.key
+          });
+          console.log("GetObjectCommand: is", command);
+          console.log("key is ", complaintData.attachment.key);
+          const url = await getSignedUrl(
+              s3,
+              command,
+              { expiresIn: 3600 }
+          );
+          complaintData.attachment.url = url;
+        }
+      catch(){
+        console.error("Failed to generate signed URL:", error);
+        complaintData.attachment.url = null;
+      }
     // Add the signed URL to the attachment object
 
     }
-
     return complaintData;
 };
 
