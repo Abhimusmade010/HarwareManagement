@@ -168,26 +168,14 @@ export const fetchone = async (complaintId, user) => {
 
 
     console.log("Fetched complaint:", complaint);
-    // if (complaint.attachment.length > 0) {
-    //     complaint.attachment = await Promise.all(
 
-    //         complaint.attachment.map(async (key) => {
-
-    //             const command = new GetObjectCommand({
-    //                 Bucket: bucketName,
-    //                 Key: key
-    //             });
-
-    //             return await getSignedUrl(
-    //                 s3,
-    //                 command,
-    //                 { expiresIn: 3600 }
-    //             );
-    //         })
-    //     );
-    // }
-    // now as this route is run so user must opened this complaint so we will update the seenByManager field to true if the user is a manager and the complaint is assigned to him/her, so that the manager can see which complaints he/she has already seen and which are new
-    if (user.Role === "maintainance" && complaint.assignedTo.toString() === user._id.toString()) {
+   if (!complaint) {
+      throw new AppError(
+          'No complaint found with that ID',
+          404
+      );
+  }
+  if (user.Role === "maintainance" && complaint.assignedTo.toString() === user._id.toString()) {
         complaint.seenByManager = true;
         complaint.seenAt = new Date();
         await complaint.save();
