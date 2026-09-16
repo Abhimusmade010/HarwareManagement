@@ -211,7 +211,7 @@ export const fetchone = async (complaintId, user) => {
           );
           complaintData.attachment.url = url;
         }
-      catch(){
+      catch(error){
         console.error("Failed to generate signed URL:", error);
         complaintData.attachment.url = null;
       }
