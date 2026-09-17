@@ -9,6 +9,9 @@ const createMaintenanceUserController = async (req, res) => {
     try {
 
         const data = req.body;
+        console.log("DATA RECEIVED BY CONTROLLER:", data);
+
+        
         const result = await createMaintenanceUser(data);
 
         res.status(200).json({
