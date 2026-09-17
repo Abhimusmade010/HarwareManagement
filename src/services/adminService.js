@@ -43,6 +43,7 @@ const createMaintenanceUser = async (data) => {
         });
     
         // ==============send the mail to the maintenance user with temp password ========================
+    console.log("temporary passsword:",tempPassword);
     await welcomeMaintenanceEmail(newUser,tempPassword);
     
 
