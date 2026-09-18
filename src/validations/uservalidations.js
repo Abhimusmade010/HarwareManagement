@@ -31,7 +31,8 @@ const loginSchema = z.object({
 
 const createMaintenanceSchema = z.object({
     Name: z.string().min(3),
-    Email: z.string().email()
+    Email: z.string().email(),
+    Specialization: z.string().min(3),
 });
 
 
