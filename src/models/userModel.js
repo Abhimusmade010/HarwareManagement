@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
+import { ROLES, VALID_ROLES } from '../constants/roles.js';
 
 const userSchema = new mongoose.Schema({
+    
     Name: {
         type: String,
         required: true,
@@ -23,8 +25,8 @@ const userSchema = new mongoose.Schema({
 
     Role: {
         type: String,
-        enum: ["user", "maintainance", "admin"],
-        default: "user"
+        enum: VALID_ROLES,
+        default: ROLES.USER
     },
 
     profileCompleted: {
@@ -36,7 +38,6 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-
 
     MobileNo: String,
 
@@ -61,8 +62,5 @@ const userSchema = new mongoose.Schema({
 { timestamps: true }
 );
 
-
-
 const User = mongoose.model('User', userSchema);
 export default User;
-

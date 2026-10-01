@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { VALID_ROLES } from "../constants/roles.js";
 
 const signUpSchema = z.object({
   Name: z
@@ -15,7 +16,7 @@ const signUpSchema = z.object({
     .min(6, "Password must be at least 6 characters"),
 
   Role: z
-    .enum(["user", "maintainance", "admin"])
+    .enum(VALID_ROLES)
     .optional()
 });
 
@@ -34,8 +35,6 @@ const createMaintenanceSchema = z.object({
     Email: z.string().email(),
     Specialization: z.string().min(3),
 });
-
-
 
 const changePasswordSchema = z.object({
 
@@ -56,8 +55,5 @@ const profileSchema = z.object({
     Specialization: z.string().max(100),
     Designation: z.string().max(100)
 });
-
-
-
 
 export { signUpSchema, loginSchema, createMaintenanceSchema, changePasswordSchema, profileSchema };

@@ -22,6 +22,7 @@ app.use(cors({
 
 // =================Body Parser=================
 app.use(express.json());
+
 // this is for parsing application/x-www-form-urlencoded means data sent from forms, and it will be available in req.body
 app.use(express.urlencoded({ extended: true }));
 

@@ -1,6 +1,7 @@
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
-import * as ComplaintService from "../services/userService.js";
+import * as ComplaintService from "../services/complaintService.js";
+import * as ReviewService from "../services/reviewService.js";
 import * as MaintenanceService from "../services/maintainanceService.js";
 
 
@@ -137,7 +138,7 @@ export const reviewController = catchAsync(async (req, res, next) => {
     const userId = req.user._id;
     const complaintId = req.params.id;
 
-    const review = await ComplaintService.submitReviewService(userId, complaintId, data);
+    const review = await ReviewService.submitReviewService(userId, complaintId, data);
 
     res.status(201).json({
       status: "success",
@@ -148,7 +149,7 @@ export const reviewController = catchAsync(async (req, res, next) => {
 
 export const getReviewController = catchAsync(async (req, res, next) => {
     const complaintId = req.params.id;
-    const review = await ComplaintService.getReviewService(complaintId);
+    const review = await ReviewService.getReviewService(complaintId);
 
     res.status(200).json({
       status: "success",

@@ -1,4 +1,5 @@
 import { protect, restrictTo } from "./authMiddleware.js";
+import { ROLES } from "../constants/roles.js";
 
 const maintenanceAuth = (req, res, next) => {
   protect(req, res, (err) => {
@@ -6,8 +7,8 @@ const maintenanceAuth = (req, res, next) => {
       return next(err);
     }
 
-    return restrictTo("maintainance")(req, res, next);
+    return restrictTo(ROLES.MAINTENANCE)(req, res, next);
   });
 };
 
-export {maintenanceAuth}
+export { maintenanceAuth };

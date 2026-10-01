@@ -2,14 +2,12 @@ import jwt from 'jsonwebtoken';
 import { catchAsync } from '../utils/catchAsync.js';
 import AppError from '../utils/AppError.js';
 import User from '../models/userModel.js';
+import { normalizeRole } from '../constants/roles.js';
 
 export const protect = catchAsync(async (req, res, next) => {
   // 1) Getting token and check if it's there
   let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
 
@@ -22,6 +20,7 @@ export const protect = catchAsync(async (req, res, next) => {
   // 2) Verification token
   const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
   console.log("JWT Payload:", decoded);
+
   // 3) Check if user still exists
   const currentUser = await User.findById(decoded.userId);
   if (!currentUser) {
@@ -35,16 +34,17 @@ export const protect = catchAsync(async (req, res, next) => {
 
   // GRANT ACCESS TO PROTECTED ROUTE
   req.user = currentUser;
-  req.user.role = currentUser.Role;
+  req.user.role = normalizeRole(currentUser.Role);
   next();
 });
 
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
-    // roles ['admin', 'maintainance']. role='user'
-    const currentRole = req.user?.Role ?? req.user?.role;
+    const rawRole = req.user?.Role ?? req.user?.role;
+    const currentRole = normalizeRole(rawRole);
+    const normalizedAllowedRoles = roles.map(r => normalizeRole(r));
 
-    if (!roles.includes(currentRole)) {
+    if (!normalizedAllowedRoles.includes(currentRole)) {
       return next(
         new AppError('You do not have permission to perform this action', 403)
       );

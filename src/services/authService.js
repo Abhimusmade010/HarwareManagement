@@ -5,18 +5,13 @@ import AppError from "../utils/AppError.js";
 import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { welcomeEmail,welcomeMaintenanceEmail } from "../utils/emailTemplates/welcomeEmail.js";
+import { welcomeEmail, welcomeMaintenanceEmail } from "../utils/emailTemplates/welcomeEmail.js";
+import { ROLES, normalizeRole } from "../constants/roles.js";
 
 const normalizeEmail = (email) => email.trim().toLowerCase();
 
 const registerUser = async (data) => {
-    //object destructuring to get the fields from data
-
     const { Name, Email, Password } = data;
-
-    // This is one of those small-looking lines that solve real production problems.
-    // normalizing the email ensures that users can't create multiple accounts with the same email but different cases or leading/trailing spaces. This is a common source of bugs in user authentication systems.
-    
     const normalizedEmail = normalizeEmail(Email);
 
     const existingUser = await User.findOne({
@@ -33,28 +28,12 @@ const registerUser = async (data) => {
         Name,
         Email: normalizedEmail,
         Password: hashPassword,
-        Role:"user",
+        Role: ROLES.USER,
         profileCompleted: false
     });
 
     await newUser.save();
-
-    // await sendEmail({
-    //     to: newUser.Email,
-
-    //     subject: "Welcome to Complaint Management System",
-
-    //     html: `
-    //         <h2>Welcome ${newUser.Name}</h2>
-
-    //         <p>Your account has been created successfully.</p>
-
-    //         <p>You can now login and submit complaints.</p>
-    //     `
-    // });
     await welcomeEmail(newUser);
-    
-    
 
     const token = jwt.sign(
         {
@@ -75,28 +54,20 @@ const registerUser = async (data) => {
     };
 };
 
-
 const logUser = async (data) => {
     const { Email, Password } = data;
-
     const normalizedEmail = normalizeEmail(Email);
 
-    // Check if user exists
     const user = await User.findOne({ Email: normalizedEmail });
-    // Use generic error message for both not found and wrong password
     if (!user) {
-        // throw new Error("Invalid credentials");
         throw new AppError("Invalid credentials", 401);
     }
 
-    // Compare password
     const isMatch = await bcrypt.compare(Password, user.Password);
     if (!isMatch) {
-        // throw new Error("Invalid credentials");
         throw new AppError("Invalid credentials", 401);
     }
 
-    // Generate the token
     const token = jwt.sign(
         {
             userId: user._id,
@@ -106,17 +77,6 @@ const logUser = async (data) => {
         { expiresIn: "1d" }
     );
 
-    // return {
-    //     message: "Login successful",
-    //     token,
-    //     user: {
-    //         id: user._id,
-    //         Name: user.Name,
-    //         Email: user.Email,
-    //         Role: user.Role,
-    //         profileCompleted: user.profileCompleted
-    //     }
-    // };
     return {
         message: "Login successful",
         token,
@@ -129,8 +89,6 @@ const logUser = async (data) => {
             mustChangePassword: user.mustChangePassword
         }
     };
-
-    // ========================Added mustChangePassword to the response for frontend to handle password change flow ========================
 };
 
 const getProfile = async (userId) => {
@@ -144,66 +102,42 @@ const getProfile = async (userId) => {
     return user;
 };
 
-
-const changePassword = async (userId,data) => {
-
-    const {
-        currentPassword,
-        newPassword
-    } = data;
-
-    const user =
-        await User.findById(userId);
+const changePassword = async (userId, data) => {
+    const { currentPassword, newPassword } = data;
+    const user = await User.findById(userId);
 
     if (!user) {
         throw new AppError("User not found", 404);
     }
 
-    const isMatch =
-        await bcrypt.compare(
-            currentPassword,
-            user.Password
-        );
-
+    const isMatch = await bcrypt.compare(currentPassword, user.Password);
     if (!isMatch) {
-        throw new  AppError("Current password is incorrect", 400);
-    
+        throw new AppError("Current password is incorrect", 400);
     }
 
-    const hashedPassword =
-        await bcrypt.hash(
-            newPassword,
-            10
-        );
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    user.Password =
-        hashedPassword;
-
-    user.mustChangePassword =
-        false;
+    user.Password = hashedPassword;
+    user.mustChangePassword = false;
 
     await user.save();
 
     return {
-        message:
-            "Password changed successfully"
+        message: "Password changed successfully"
     };
 };
-
 
 const completeProfile = async (userId, data) => {
     const user = await User.findById(userId);
     if (!user) {
-        // throw new Error("User not found");
         throw new AppError("User not found", 404);
     }   
 
-    // Update the user profile fields
     user.MobileNo = data.MobileNo || user.MobileNo;
     user.CabinNo = data.CabinNo || user.CabinNo;
     user.Department = data.Department || user.Department;
     user.Designation = data.Designation || user.Designation;
-    if(user.Role === "maintainance") {
+    if (normalizeRole(user.Role) === ROLES.MAINTENANCE) {
         user.Specialization = data.Specialization || user.Specialization;
     }
 
@@ -214,8 +148,4 @@ const completeProfile = async (userId, data) => {
     return user;
 };
 
-
-
 export { registerUser, logUser, getProfile, changePassword, completeProfile };
-
-        

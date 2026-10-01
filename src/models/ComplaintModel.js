@@ -1,6 +1,5 @@
-import mongoose, { mongo } from 'mongoose';
-import { number, stringFormat } from 'zod';
-// import validator from 'validator'
+import mongoose from 'mongoose';
+import { VALID_ROLES } from '../constants/roles.js';
 
 const noteSchema = new mongoose.Schema({
     message: {
@@ -10,12 +9,12 @@ const noteSchema = new mongoose.Schema({
     },
     addedBy: {
       type: String,
-      enum: ["user","maintainance","admin"],
+      enum: VALID_ROLES,
       required: true,
     },
     addedById: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",                                      // optional but powerful
+      ref: "User",
     },
     createdAt: {
       type: Date,
@@ -120,11 +119,6 @@ const complaintSchema = new mongoose.Schema(
 
     resolutionDetails: String,
 
-    // attachments: [
-    //   {
-    //     type: String
-    //   }
-    // ],
     attachment: {
         key: String,
         type: {
@@ -157,29 +151,20 @@ const complaintSchema = new mongoose.Schema(
   },
 
   {
-    timestamps: true   // ✅ Correct
+    timestamps: true
   }
 );
 
-// this is for the dashboard statistics, so we can use this index to improve the performance of queries that filter by userId, assetId, status and assignedTo
-
-
 complaintSchema.index({ userId: 1 });
-
 complaintSchema.index({ assignedTo: 1 });
-
 complaintSchema.index({ status: 1 });
-
 complaintSchema.index({ category: 1 });
-
 
 complaintSchema.index({
   assignedTo: 1,
   status: 1
 });
 
-
-// index for reminder job to find complaints that have not been seen by the manager and have not been reminded yet
 complaintSchema.index({
     seenByManager: 1,
     reminderCount: 1,
@@ -191,6 +176,6 @@ complaintSchema.index({
   status: 1
 });
 
-const Complaint =mongoose.models.Complaint || mongoose.model("Complaint", complaintSchema);
+const Complaint = mongoose.models.Complaint || mongoose.model("Complaint", complaintSchema);
 
 export default Complaint;
