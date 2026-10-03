@@ -6,6 +6,12 @@ import { completeProfile} from "../services/authService.js";
 const signUpUser = catchAsync(async (req, res, next) => {
 
     const result = await AuthService.registerUser(req.body);
+    res.cookie('token', result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
     res.status(201).json({
         status: "success",
         message: "User created successfully",
@@ -15,6 +21,12 @@ const signUpUser = catchAsync(async (req, res, next) => {
 
 const loginUser = catchAsync(async (req, res, next) => {
     const result = await AuthService.logUser(req.body);
+    res.cookie('token', result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
     res.status(200).json({
         status: "success",
         message: "Login successful",
@@ -47,4 +59,14 @@ const changeProfile = catchAsync(async (req, res, next) => {
     });
 });
 
-export { signUpUser, loginUser, completeProfile, getMe, changeProfile };
+const logoutUser = catchAsync(async (req, res, next) => {
+    res.cookie('token', 'loggedout', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 1 // expire immediately
+    });
+    res.status(200).json({ status: 'success' });
+});
+
+export { signUpUser, loginUser, completeProfile, getMe, changeProfile, logoutUser };

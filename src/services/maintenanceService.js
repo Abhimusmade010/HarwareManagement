@@ -15,6 +15,22 @@ export const updateComplaintStatus = async (complaintId, status, resolutionDetai
   const oldStatus = complaint.status;
   const newStatus = status;
 
+  const STATUS_ORDER = {
+    "assigned": 1,
+    "in-progress": 2,
+    "escalated": 3,
+    "resolved": 4,
+    "closed": 5
+  };
+
+  if (STATUS_ORDER[newStatus] === undefined) {
+    throw new AppError(`Invalid status: ${newStatus}`, 400);
+  }
+
+  if (STATUS_ORDER[newStatus] < STATUS_ORDER[oldStatus]) {
+    throw new AppError(`Cannot revert status from ${oldStatus} to ${newStatus}`, 400);
+  }
+
   // Only assigned manager or admin can update 
   if (normalizeRole(role) !== ROLES.ADMIN && complaint.assignedTo.toString() !== userId.toString()) {
     throw new AppError(

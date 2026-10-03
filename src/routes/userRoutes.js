@@ -4,7 +4,7 @@ import { protect } from "../middleware/authMiddleware.js";
 import validate from "../middleware/validations.js";
 import { signUpSchema, loginSchema } from "../validations/uservalidations.js";
 import { changePasswordSchema } from "../validations/uservalidations.js";
-import { changePassword } from "../controllers/maintainanceController.js";
+import { changePassword } from "../controllers/maintenanceController.js";
 import { reviewController } from "../controllers/complaintscontroller.js";
 const router = express.Router();
 import sendEmail from "../utils/sendEmail.js";

@@ -7,6 +7,7 @@ import errorMiddleware from "./middleware/errorMiddleware.js";
 import AppError from "./utils/AppError.js";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(cors({
 
 // =================Body Parser=================
 app.use(express.json());
+app.use(cookieParser());
 
 // this is for parsing application/x-www-form-urlencoded means data sent from forms, and it will be available in req.body
 app.use(express.urlencoded({ extended: true }));
@@ -30,12 +32,15 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // Rate Limiting-this is for preventing brute force attacks and denial of service attacks, it limits the number of requests from a single IP address in a given time window
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,                       // Limit each IP to 100 requests per `window` (here, per 15 minutes)
   standardHeaders: true,                  
   legacyHeaders: false,  
 });
+
+
 app.use(limiter);
 
 // =================Routes=================

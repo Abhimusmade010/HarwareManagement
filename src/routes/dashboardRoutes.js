@@ -13,7 +13,7 @@ router.get("/stats", getDashboardStats);
 
 router.get("/department-stats",getDepartmentStats);
 
-// download sheet for user, maintainance and admin
+// download sheet for user, maintenance and admin
 router.get("/downloadSheet", downloadSheet);
 
 router.use(restrictTo("admin"));

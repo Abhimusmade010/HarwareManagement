@@ -17,9 +17,9 @@ router.post("/create-maintenance",protect,restrictTo("admin"),validate(createMai
 router.get("/engineers", protect, restrictTo("admin"), getMaintenanceEngineersController);
 
 
-// router.patch("/updatestatus/:complaintId",protect,restrictTo("maintainance"),updateStatus);
+// router.patch("/updatestatus/:complaintId",protect,restrictTo("maintenance"),updateStatus);
 
-// router.get("/complaints",protect,restrictTo("maintainance"),fetchAllComplaintsForMaintenance)
+// router.get("/complaints",protect,restrictTo("maintenance"),fetchAllComplaintsForMaintenance)
 
 
 export default router;

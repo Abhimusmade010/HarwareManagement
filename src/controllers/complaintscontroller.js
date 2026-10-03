@@ -2,7 +2,7 @@ import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
 import * as ComplaintService from "../services/complaintService.js";
 import * as ReviewService from "../services/reviewService.js";
-import * as MaintenanceService from "../services/maintainanceService.js";
+import * as MaintenanceService from "../services/maintenanceService.js";
 
 
 export const updateStatus = catchAsync(async (req, res, next) => {

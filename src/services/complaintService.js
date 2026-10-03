@@ -211,11 +211,12 @@ export const complaintData = async user => {
 
   const response = {
     total: 0,
-    pending: 0,
-    resolved: 0,
+    assigned: 0,
     inProgress: 0,
+    resolved: 0,
+    closed: 0,
     escalated: 0,
-    closed: 0
+    pending: 0
   };
 
   stats.forEach(item => {
@@ -223,12 +224,10 @@ export const complaintData = async user => {
     const statusKey = item._id === "in-progress" ? "inProgress" : item._id;
     if (response.hasOwnProperty(statusKey)) {
       response[statusKey] = item.count;
-    } else {
-      response.pending += item.count;
     }
   });
 
-  response.pending = response.total - response.resolved - response.closed;
+  response.pending = response.assigned + response.inProgress + response.escalated;
 
   return response;
 };
